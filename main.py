@@ -20,6 +20,28 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger("wishlist_logger")
 log.setLevel(logging.DEBUG)
 
+admin_password = None
+
+
+def try_admin_login(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    if context.user_data.get('admin', False):
+        return True
+
+    log.debug(f"Admin login attempt detected by user '{update.effective_user.id}'!")
+
+    global admin_password
+    if admin_password is None:
+        return False
+
+    if len(context.args) != 1:
+        return False
+
+    if context.args[0] != admin_password:
+        return False
+
+    context.user_data['admin'] = True
+    return True
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     log.debug("'Start' command handler: "
@@ -31,7 +53,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         context.user_data['user_name'] = update.effective_user.username
         log.debug(f"New user: userid = '{update.effective_user.id}', ")
 
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
+    message = f'Привет, {update.effective_user.username}!'
+    if try_admin_login(update, context):
+        message = f'Здравствуй, админ.'
+
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -41,10 +67,15 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser("WishList telegram bot")
     parser.add_argument('-t', '--token', required=True)
-    parser.add_argument('-s', '--storage_path', required=True)
+    parser.add_argument('-p', '--admin-password', required=False)
+    parser.add_argument('-s', '--storage-path', required=True)
     args = parser.parse_args()
 
+    global admin_password
+    admin_password = args.admin_password
+
     persistence = PicklePersistence(args.storage_path)
+
     application = Application.builder().token(args.token).persistence(persistence).build()
 
     start_handler = CommandHandler('start', start)
