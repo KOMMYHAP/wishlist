@@ -10,7 +10,7 @@ class LocalStorage(BaseStorage):
 
     async def get_user_by_name(self, username: str) -> User | None:
         user_data = await self.persistence.get_user_data()
-        for id, data in user_data:
+        for id, data in user_data.items():
             if data['user_name'] == username:
                 return User(data['user_id'], data['user_name'])
         return None
@@ -24,11 +24,10 @@ class LocalStorage(BaseStorage):
         return User(user['user_id'], user['user_name'])
 
     async def create_user(self, user: User) -> bool:
-        user_data = {
+        await self.persistence.update_user_data(user.id, {
             'user_id': user.id,
             'user_name': user.name
-        }
-        await self.persistence.update_user_data(user.id, user_data)
+        })
         return True
 
     async def get_wishlist(self, user_id: int) -> list[WishlistRecord]:
@@ -59,7 +58,7 @@ class LocalStorage(BaseStorage):
                 wish = data['wishlist'][wish_idx]
                 if wish['id'] != wish_id:
                     continue
-                data['wishlist'].remove(wish_idx)
+                wish.performed = True
                 await self.persistence.update_user_data(user_id, data)
                 break
             break
@@ -68,8 +67,11 @@ class LocalStorage(BaseStorage):
     async def create_wish(self, wish: WishlistRecord) -> bool:
         bot_data = await self.persistence.get_bot_data()
 
-        wish_id = bot_data.setdefault('wish_id', 0)
+        if bot_data.get('wish_id') is None:
+            bot_data['wish_id'] = 0
+        wish_id = bot_data['wish_id']
         bot_data['wish_id'] = wish_id + 1
+        await self.persistence.update_bot_data(bot_data)
 
         user_data = await self.persistence.get_user_data()
         for id, data in user_data.items():
@@ -84,7 +86,9 @@ class LocalStorage(BaseStorage):
                 'reserved_by_user': wish.reserved_by_user,
                 'performed': wish.performed
             }
-            data.setdefault('wishlist', []).append(wish_entry)
+            if data.get('wishlist') is None:
+                data['whishlist'] = []
+            data['whishlist'].append(wish_entry)
             await self.persistence.update_user_data(wish.user_id, data)
             break
         return True
