@@ -34,7 +34,7 @@ class WishManager:
     async def get_wishlist(self, user_id: int, target_username: str) -> WishlistResponse:
         self._log.debug('get_wishlist(%d, %s)', user_id, target_username)
 
-        await self._try_complete_wish(user_id)
+        await self.try_complete_wish(user_id)
 
         target_user = await self._storage.get_user_by_name(target_username)
         if target_user is None:
@@ -52,7 +52,7 @@ class WishManager:
 
     async def add_wish_title(self, user_id: int, title: str) -> None:
         self._log.debug('add_wish_title(%d, %s)', user_id, title)
-        await self._try_complete_wish(user_id)
+        await self.try_complete_wish(user_id)
         self._require_wish_builder(user_id).title = title
         self._log.debug('add_wish_title(%d, %s) -> wish builder updated', user_id, title)
 
@@ -71,7 +71,7 @@ class WishManager:
     async def remove_wish(self, user_id: int, wish_idx: int) -> bool:
         self._log.debug('remove_wish(%d, %d)', user_id, wish_idx)
 
-        await self._try_complete_wish(user_id)
+        await self.try_complete_wish(user_id)
 
         wishlist = await self._storage.get_wishlist(user_id)
         if not (0 <= wish_idx < len(wishlist)):
@@ -99,7 +99,7 @@ class WishManager:
         self._log.debug('register_user(%s) -> user found', str(user))
         return False
 
-    async def _try_complete_wish(self, user_id: int) -> bool:
+    async def try_complete_wish(self, user_id: int) -> bool:
         self._log.debug('_try_complete_wish(%d)', user_id)
         wish_builder = self._incomplete_wish_by_user.get(user_id)
         if wish_builder is None:

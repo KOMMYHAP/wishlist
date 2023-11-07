@@ -102,9 +102,11 @@ async def wish_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
 
 async def wish_reference(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    reference = update.message.text.strip()
+    reference = " ".join(context.args).strip()
+    if len(reference) == 0:
+        reference = update.message.text.strip()
     if len(reference) > 0:
-        await wish_manager.add_wish_reference(update.effective_user.id, update.message.text.strip())
+        await wish_manager.add_wish_reference(update.effective_user.id, reference)
         await update.message.reply_text(
             "Записал ссылку, можешь кидать еще. "
             "Введи /add, чтобы добавить новое желание, либо /stop, чтобы вернуться в главное меню")
@@ -116,8 +118,14 @@ async def wish_reference(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def wish_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await wish_manager.remove_incomplete_wish(update.effective_user.id)
+    await wish_manager.try_complete_wish(update.effective_user.id)
     await update.message.reply_text("Буду ждать новых желаний!")
+    return ConversationHandler.END
+
+
+async def wish_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await wish_manager.remove_incomplete_wish(update.effective_user.id)
+    await update.message.reply_text("Возвращайся скорее, я буду рад записать твоё желание!")
     return ConversationHandler.END
 
 
@@ -161,17 +169,15 @@ def main() -> None:
         states={
             WISH_TITLE: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, wish_title),
-                CommandHandler('add', add_wish),
                 CommandHandler('reference', wish_reference),
                 CommandHandler('stop', wish_stop)
             ],
             WISH_REFERENCE: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, wish_reference),
                 CommandHandler('stop', wish_stop),
-                CommandHandler('add', wish_title)
             ]
         },
-        fallbacks=[CommandHandler("cancel", wish_stop)],
+        fallbacks=[CommandHandler("cancel", wish_cancel)],
     ))
     application.add_handler(CommandHandler("get", get_wishlist))
     application.add_handler(CommandHandler("remove", remove_wish, has_args=True))

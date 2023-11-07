@@ -21,7 +21,7 @@ class LocalStorage(BaseStorage):
         user_data = await self._persistence.get_user_data()
         try:
             for id, data in user_data.items():
-                if data['user_name'] == username:
+                if data.get('user_name') == username:
                     return User(data['user_id'], data['user_name'])
         except KeyError as e:
             self._log.exception('username %s', username, exc_info=e)
@@ -33,11 +33,13 @@ class LocalStorage(BaseStorage):
         user = user_data.get(user_id)
         if user is None:
             return None
+        if user.get('user_id') is None:
+            return None
 
         try:
             return User(user['user_id'], user['user_name'])
         except KeyError as e:
-            self._log.exception('user id %d', user_id, exc_info=e)
+            self._log.exception('user id %d, user data %s', user_id, json.dumps(user, indent='  '), exc_info=e)
             return None
 
     async def create_user(self, user: User) -> bool:
