@@ -8,13 +8,14 @@ from telegram.ext import (
     ContextTypes,
     MessageHandler,
     PicklePersistence,
-    filters, ConversationHandler, PersistenceInput,
-
+    filters,
+    ConversationHandler,
+    PersistenceInput
 )
 
-from data_types import User, WishlistRecord
-from storage_interface import BaseStorage
+from data_types import User
 from storage_local import LocalStorage
+from wish_manager import WishManager
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -22,45 +23,33 @@ logging.basicConfig(
 )
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
-log = logging.getLogger("wishlist_logger")
+log = logging.getLogger("bot_api")
 log.setLevel(logging.DEBUG)
 
 WISH_TITLE, WISH_REFERENCE = range(2)
-storage: BaseStorage | None = None
+wish_manager: WishManager | None
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    log.debug("'Start' command handler: "
-              f"userid = '{update.effective_user.id}', "
-              f"username = '{update.effective_user.username}'")
-
     user = User(update.effective_user.id, update.effective_user.username)
-    new_user_created = await storage.create_user(user)
-    if new_user_created:
-        log.debug(f"New user: userid = '{update.effective_user.id}', ")
-
+    await wish_manager.register_user(user)
     await update.message.reply_text(f'Привет, {update.effective_user.username}!')
 
 
 async def get_wishlist(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    wishlist_target_id = update.effective_user.id
     wishlist_target_name = update.effective_user.name
     if len(context.args) > 0:
-        target_username = context.args[0]
-        target_user = await storage.get_user_by_name(target_username)
+        wishlist_target_name = context.args[0]
 
-        log.debug(f"User {update.effective_user.username} trying to get wishlist of user {target_username}")
-        if target_user is None:
-            await update.message.reply_text(f"Похоже, что '{target_username}' еще не знает обо мне")
-            return
+    response = await wish_manager.get_wishlist(update.effective_user.id, wishlist_target_name)
+    if response.owner is None:
+        await update.message.reply_text(f"Я не смог найти пользователя с именем '{wishlist_target_name}'. "
+                                        "Может быть он еще не знает обо мне?")
+        return
 
-        if target_user.id != update.effective_user.id:
-            wishlist_target_id = target_user.id
-            wishlist_target_name = target_user.name
+    is_external_request = response.owner.id != update.effective_user.id
 
-    is_external_request = wishlist_target_id != update.effective_user.id
-
-    wishlist = await storage.get_wishlist(wishlist_target_id)
+    wishlist = response.wishlist
     wish_str_list = []
 
     for wish_idx in range(0, len(wishlist)):
@@ -70,9 +59,9 @@ async def get_wishlist(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         wish_str = f"{wish_idx + 1}. {wish.title}"
         if is_external_request:
-            if wish.reserved_by_user is not None:
-                reserved_by_user = await storage.get_user_by_id(wish.reserved_by_user)
-                wish_str += f" зарезервирован {reserved_by_user.name}"
+            reserved_by_user = response.reservation_map.get(wish.wish_id)
+            if reserved_by_user is not None:
+                wish_str += f" зарезервирован за '{reserved_by_user.name}'"
         if len(wish.references) > 0:
             wish_str += ':\n' + '\n -'.join(wish.references)
         wish_str_list.append(wish_str)
@@ -86,27 +75,11 @@ async def get_wishlist(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(message)
 
 
-async def try_complete_wish(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
-    if context.chat_data.get('temp_wish') is None:
-        return False
-
-    temp_wish = context.chat_data['temp_wish']
-    wish_record = WishlistRecord(0, update.effective_user.id, temp_wish['title'], temp_wish['references'], None, False)
-    await storage.create_wish(wish_record)
-    return True
-
-
 async def add_wish(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await try_complete_wish(update, context)
-
-    fast_wish_title = ' '.join(context.args)
-    context.chat_data['temp_wish'] = {
-        'title': fast_wish_title,
-        'references': []
-    }
+    fast_wish_title = ' '.join(context.args).strip()
     if len(fast_wish_title) > 0:
-        await try_complete_wish(update, context)
-        await update.message.reply_text(f"Я добавил новое желание в вишлист: {fast_wish_title}")
+        await wish_manager.add_wish_title(update.effective_user.id, fast_wish_title)
+        await update.message.reply_text(f"Я добавил новое желание в вишлист: '{fast_wish_title}'")
         return
 
     await update.message.reply_text(
@@ -115,48 +88,56 @@ async def add_wish(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def wish_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    context.chat_data['temp_wish']['title'] = update.message.text
-    await update.message.reply_text(
-        "Записал. Еще желания? Если хочешь добавить ссылку, вводи /reference, либо /stop, чтобы вернуться в "
-        "главное меню")
+    title = update.message.text.strip()
+    if len(title) > 0:
+        await wish_manager.add_wish_title(update.effective_user.id, update.message.text)
+        await update.message.reply_text(
+            "Записал. Еще желания? Если хочешь добавить ссылку, вводи /reference, либо /stop, чтобы вернуться в "
+            "главное меню")
+    else:
+        await update.message.reply_text(
+            "Введи название того, что ты хочешь получить. "
+            "Если хочешь добавить ссылку, вводи /reference, либо /stop, чтобы вернуться в главное меню")
     return WISH_TITLE
 
 
 async def wish_reference(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    context.chat_data['temp_wish']['references'].append(update.message.text)
-    await update.message.reply_text(
-        "Записал ссылку, можешь кидать еще. Введи /add, чтобы добавить новое желание, либо /stop, чтобы вернуться в "
-        "главное меню")
+    reference = update.message.text.strip()
+    if len(reference) > 0:
+        await wish_manager.add_wish_reference(update.effective_user.id, update.message.text.strip())
+        await update.message.reply_text(
+            "Записал ссылку, можешь кидать еще. "
+            "Введи /add, чтобы добавить новое желание, либо /stop, чтобы вернуться в главное меню")
+    else:
+        await update.message.reply_text(
+            "Введи ссылку, чтобы я мог прикрепить её к твоему желанию. "
+            "Введи /add, чтобы добавить новое желание, либо /stop, чтобы вернуться в главное меню")
     return WISH_REFERENCE
 
 
 async def wish_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.chat_data.pop('temp_wish')
+    await wish_manager.remove_incomplete_wish(update.effective_user.id)
     await update.message.reply_text("Буду ждать новых желаний!")
     return ConversationHandler.END
 
 
 async def remove_wish(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) == 0:
+        log.debug('remove_wish(%d) no args', update.effective_user.id)
         await update.message.reply_text("Пожалуйста, введи номер из вишлиста. Например, /remove 1")
 
     try:
         wish_idx = int(context.args[0]) - 1
     except ValueError:
+        log.debug(f'remove_wish({update.effective_user.id}) invalid arg')
         await update.message.reply_text("Пожалуйста, введи номер из вишлиста")
         return
 
-    wishlist = await storage.get_wishlist(update.effective_user.id)
-    if not (0 <= wish_idx < len(wishlist)):
-        await update.message.reply_text(f"Пожалуйста, введи номер из вишлиста от 1 до {len(wishlist)}")
-        return
-
-    wish = wishlist[wish_idx]
-    removed = await storage.remove_wish(update.effective_user.id, wish.wish_id)
+    removed = await wish_manager.remove_wish(update.effective_user.id, wish_idx)
     if not removed:
-        await update.message.reply_text(f"Непредвиденная ошибка :(")
+        await update.message.reply_text(f"Я не смог удалить твое желание. Пожалуйста, проверь правильность ввода")
 
-    await update.message.reply_text(f"Я пометил, что ты выполнил желание '{wish.title}'")
+    await update.message.reply_text(f"Я пометил, что ты выполнил желание")
 
 
 def main() -> None:
@@ -165,10 +146,12 @@ def main() -> None:
     parser.add_argument('-s', '--storage-path', required=True)
     args = parser.parse_args()
 
-    persistence = PicklePersistence(args.storage_path, PersistenceInput(True, False, True, False))
+    persistent_bot_and_user_data = PersistenceInput(True, False, True, False)
+    persistence = PicklePersistence(args.storage_path, persistent_bot_and_user_data)
 
-    global storage
+    global wish_manager
     storage = LocalStorage(persistence)
+    wish_manager = WishManager(storage)
 
     application = Application.builder().token(args.token).persistence(persistence).build()
 
