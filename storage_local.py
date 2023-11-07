@@ -15,6 +15,7 @@ class LocalStorage(BaseStorage):
     def __init__(self, persistence: BasePersistence):
         self._persistence = persistence
         self._log = logging.getLogger("LocalStorage")
+        self._log.setLevel(logging.DEBUG)
 
     async def get_user_by_name(self, username: str) -> User | None:
         user_data = await self._persistence.get_user_data()
@@ -40,7 +41,7 @@ class LocalStorage(BaseStorage):
             return None
 
     async def create_user(self, user: User) -> bool:
-        old_user = self.get_user_by_id(user.id)
+        old_user = await self.get_user_by_id(user.id)
         if old_user:
             return False
         await self._update_user_data(user.id, {
@@ -80,7 +81,7 @@ class LocalStorage(BaseStorage):
 
         try:
             wish = user['wishlist'][wish_idx]
-            wish.performed = True
+            wish['performed'] = True
             await self._update_user_data(user_id, user)
         except KeyError as e:
             self._log.exception('user id %d, wish_idx %d', user_id, wish_idx, exc_info=e)
@@ -88,13 +89,18 @@ class LocalStorage(BaseStorage):
         return True
 
     async def create_wish(self, wish: WishlistRecord) -> bool:
-        bot_data = await self._persistence.get_bot_data()
+        if wish.wish_id != 0:
+            self._log.error('create_wish(%s) -> wish id must be 0 to create new wish', str(wish))
+            return False
 
+        bot_data = await self._persistence.get_bot_data()
         if bot_data.get('wish_id') is None:
             bot_data['wish_id'] = 0
         wish_id = bot_data['wish_id']
         bot_data['wish_id'] = wish_id + 1
         await self._update_bot_data(bot_data)
+
+        wish.wish_id = wish_id
 
         user_data = await self._persistence.get_user_data()
         user = user_data.get(wish.user_id)
@@ -103,26 +109,32 @@ class LocalStorage(BaseStorage):
 
         try:
             wish_entry = {
-                'id': wish_id,
+                'id': wish.wish_id,
                 'user_id': wish.user_id,
                 'title': wish.title,
                 'references': wish.references,
                 'reserved_by_user': wish.reserved_by_user,
                 'performed': wish.performed
             }
-            user['whishlist'].append(wish_entry)
-            await self._update_user_data(wish.user_id, wish_entry)
+            user['wishlist'].append(wish_entry)
+            await self._update_user_data(wish.user_id, user)
         except KeyError as e:
             self._log.exception('user id %d, wish %s', wish.user_id, str(wish), exc_info=e)
             return False
         return True
 
     async def _update_user_data(self, user_id: int, user_data: dict) -> None:
-        old_user_data = await self._persistence.get_user_data()
+        old_user_data = None
+        if self._log.isEnabledFor(logging.DEBUG):
+            data = await self._persistence.get_user_data()
+            old_user_data = data.get(user_id)
+
         await self._persistence.update_user_data(user_id, user_data)
-        dump_1 = json.dumps(old_user_data, indent='  ')
-        dump_2 = json.dumps(user_data, indent='  ')
-        self._log.debug('update user data of user %d from: \n%s, to: \n%s', user_id, dump_1, dump_2)
+
+        if self._log.isEnabledFor(logging.DEBUG):
+            dump_1 = json.dumps(old_user_data, indent='  ')
+            dump_2 = json.dumps(user_data, indent='  ')
+            self._log.debug('update user data of user %d from: \n%s, to: \n%s', user_id, dump_1, dump_2)
 
     async def _update_bot_data(self, bot_data: dict) -> None:
         old_bot_data = None

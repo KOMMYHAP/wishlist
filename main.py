@@ -31,9 +31,9 @@ wish_manager: WishManager | None
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = User(update.effective_user.id, update.effective_user.username)
+    user = User(update.effective_user.id, update.effective_user.name)
     await wish_manager.register_user(user)
-    await update.message.reply_text(f'Привет, {update.effective_user.username}!')
+    await update.message.reply_text(f'Привет, {update.effective_user.name}!')
 
 
 async def get_wishlist(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
