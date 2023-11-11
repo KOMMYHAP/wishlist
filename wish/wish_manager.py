@@ -2,8 +2,8 @@ import logging
 from dataclasses import dataclass
 from logging import Logger
 
-from data_types import WishlistRecord, User
-from storage_interface import BaseStorage
+from wish.data_types import WishlistRecord, User
+from wish.storage_interface import BaseStorage
 
 
 @dataclass
@@ -27,7 +27,6 @@ class WishManager:
     def __init__(self, storage: BaseStorage):
         self._storage = storage
         self._log = logging.getLogger('WishManager')
-        self._log.setLevel(logging.DEBUG)
         self._incomplete_wish_by_user = {}
         pass
 

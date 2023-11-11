@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from data_types import User, WishlistRecord
+from wish.data_types import User, WishlistRecord
 
 
 class BaseStorage(ABC):

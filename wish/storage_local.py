@@ -4,8 +4,8 @@ from logging import Logger
 
 from telegram.ext import BasePersistence
 
-from data_types import User, WishlistRecord
-from storage_interface import BaseStorage
+from wish.data_types import User, WishlistRecord
+from wish.storage_interface import BaseStorage
 
 
 class LocalStorage(BaseStorage):
