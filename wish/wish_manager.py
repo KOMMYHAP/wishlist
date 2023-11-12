@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from logging import Logger
 
 from wish.data_types import WishlistRecord, User
-from wish.storage_interface import BaseStorage
+from wish.storage.storage_base import BaseStorage
 
 
 @dataclass
@@ -45,7 +45,7 @@ class WishManager:
         for wish in wishlist:
             if wish.reserved_by_user is None:
                 continue
-            reserved_by_user = await self._storage.get_user_by_id(wish.user_id)
+            reserved_by_user = await self._storage.get_user_by_id(wish.owner_id)
             response.reservation_map[wish.wish_id] = reserved_by_user
         return response
 

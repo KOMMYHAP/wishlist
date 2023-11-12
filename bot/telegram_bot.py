@@ -13,7 +13,7 @@ from bot.handlers.command_start import init_start_command_handler
 from bot.types.button import Button
 from bot.types.button_callback_filter import ButtonCallbackFilter
 from bot.utilities.id_generator import id_generator
-from wish.storage_interface import BaseStorage
+from wish.storage.storage_file import FileStorage
 from wish.wish_manager import WishManager
 
 
@@ -29,6 +29,7 @@ def register_main_menu(unique_id_generator: Generator[int, Any, None]) -> dict[i
 async def entry_point() -> None:
     parser = argparse.ArgumentParser("WishList telegram bot")
     parser.add_argument('-t', '--token', required=True)
+    parser.add_argument('-f', '--storage-file', required=True)
     args = parser.parse_args()
 
     unique_id_generator = id_generator()
@@ -39,7 +40,7 @@ async def entry_point() -> None:
     bot.register_message_handler(start_command_handler, commands=['start'], pass_bot=True)
 
     bot.add_custom_filter(ButtonCallbackFilter())
-    storage: BaseStorage = None
+    storage = FileStorage(args.storage_file)
     wish_manager = WishManager(storage)
     button_handler = init_button_handler(wish_manager, main_menu_buttons)
     bot.register_callback_query_handler(button_handler, None, button=Button.callback_factory().filter(), pass_bot=True)
