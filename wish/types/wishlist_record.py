@@ -2,12 +2,6 @@ from dataclasses import dataclass
 
 
 @dataclass
-class User:
-    id: int
-    name: str
-
-
-@dataclass
 class WishlistRecord:
     wish_id: int
     owner_id: int  # same as User.id

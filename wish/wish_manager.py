@@ -1,9 +1,10 @@
-import logging
 from dataclasses import dataclass
 from logging import Logger
 
-from wish.data_types import WishlistRecord, User
-from wish.storage.storage_base import BaseStorage
+from wish.storage_adapters.base_storage_adapter import WishStorageBaseAdapter
+from wish.types.user import User
+from wish.types.wish_draft import WishDraft
+from wish.types.wishlist_record import WishlistRecord
 
 
 @dataclass
@@ -13,27 +14,53 @@ class WishlistResponse:
     reservation_map: dict[int, User]
 
 
-@dataclass
-class WishBuilder:
-    title: str | None
-    references: list[str] | None
-
-
 class WishManager:
-    _storage: BaseStorage
+    _storage: WishStorageBaseAdapter
     _log: Logger
-    _incomplete_wish_by_user: dict[int, WishBuilder]
+    wish_per_page: int
 
-    def __init__(self, storage: BaseStorage):
+    def __init__(self, storage: WishStorageBaseAdapter, logger: Logger):
         self._storage = storage
-        self._log = logging.getLogger('WishManager')
+        self._log = logger.getChild('wish_manager')
         self._incomplete_wish_by_user = {}
+        self.wish_per_page = 5
         pass
+
+    async def get_wish(self, user_id: int, wish_id: int) -> WishlistRecord | None:
+        self._log.debug('get_wish(%d, %d)', user_id, wish_id)
+        return await self._storage.get_wish(wish_id)
+
+    async def update_wish(self, user_id: int, wish_draft: WishDraft) -> bool:
+        self._log.debug('update_wish(%d, %s, %d)', user_id, str(wish_draft))
+        old_wish = await self.get_wish(user_id, wish_draft.wish_id)
+        if old_wish is None:
+            self._log.error('wish %d was not found to update!', wish_draft.wish_id)
+            return False
+        if old_wish.performed:
+            self._log.warning('trying to update wish which is already performed')
+            return False
+        return await self._storage.update_wish(WishlistRecord(
+            wish_draft.wish_id,
+            user_id,
+            wish_draft.title,
+            wish_draft.references,
+            old_wish.reserved_by_user,
+            old_wish.performed
+        ))
+
+    async def create_wish(self, user_id: int, wish_draft: WishDraft) -> bool:
+        self._log.debug('create_wish(%d, %s)', user_id, str(wish_draft))
+        return await self._storage.create_wish(WishlistRecord(
+            0,
+            user_id,
+            wish_draft.title,
+            wish_draft.references,
+            None,
+            False
+        ))
 
     async def get_wishlist(self, user_id: int, target_username: str) -> WishlistResponse:
         self._log.debug('get_wishlist(%d, %s)', user_id, target_username)
-
-        await self.try_complete_wish(user_id)
 
         target_user = await self._storage.get_user_by_name(target_username)
         if target_user is None:
@@ -49,28 +76,8 @@ class WishManager:
             response.reservation_map[wish.wish_id] = reserved_by_user
         return response
 
-    async def add_wish_title(self, user_id: int, title: str) -> None:
-        self._log.debug('add_wish_title(%d, %s)', user_id, title)
-        await self.try_complete_wish(user_id)
-        self._require_wish_builder(user_id).title = title
-        self._log.debug('add_wish_title(%d, %s) -> wish builder updated', user_id, title)
-
-    async def add_wish_reference(self, user_id: int, reference: str) -> None:
-        self._log.debug('add_wish_reference(%d, %s)', user_id, reference)
-        builder = self._require_wish_builder(user_id)
-        if builder.references is None:
-            builder.references = []
-        builder.references.append(reference)
-        self._log.debug('add_wish_reference(%d, %s) -> wish builder updated', user_id, reference)
-
-    async def remove_incomplete_wish(self, user_id: int) -> None:
-        self._log.debug('remove_incomplete_wish(%d)', user_id)
-        self._discard_wish_builder(user_id)
-
     async def remove_wish(self, user_id: int, wish_idx: int) -> bool:
         self._log.debug('remove_wish(%d, %d)', user_id, wish_idx)
-
-        await self.try_complete_wish(user_id)
 
         wishlist = await self._storage.get_wishlist(user_id)
         if not (0 <= wish_idx < len(wishlist)):
@@ -88,50 +95,13 @@ class WishManager:
 
     async def register_user(self, user: User) -> bool:
         old_user = await self._storage.get_user_by_id(user.id)
-        if old_user is None:
-            created = await self._storage.create_user(user)
-            if not created:
-                self._log.error('register_user(%s) -> failed to create new user', str(user))
-                return False
-            self._log.debug('register_user(%s) -> new user created', str(user))
-            return True
-        self._log.debug('register_user(%s) -> user found', str(user))
-        return False
-
-    async def try_complete_wish(self, user_id: int) -> bool:
-        self._log.debug('_try_complete_wish(%d)', user_id)
-        wish_builder = self._incomplete_wish_by_user.get(user_id)
-        if wish_builder is None:
-            self._log.debug('_try_complete_wish(%d) -> no incomplete wish', user_id)
+        if old_user is not None:
+            self._log.debug('register_user(%s) -> user found', str(user))
             return False
 
-        if wish_builder.title is None:
-            self._log.error('_try_complete_wish(%d) -> invalid title', user_id)
+        created = await self._storage.create_user(user)
+        if not created:
+            self._log.error('register_user(%s) -> failed to create new user', str(user))
             return False
-
-        unknown_id = 0
-        wish = WishlistRecord(unknown_id, user_id, wish_builder.title, wish_builder.references or [], None, False)
-        created = await self._storage.create_wish(wish)
-
-        if created:
-            self._incomplete_wish_by_user.pop(user_id)
-            self._log.debug("_try_complete_wish(%d) -> wish '%s' completed", user_id, str(wish))
-            return True
-        else:
-            self._log.error("_try_complete_wish(%d) -> failed to complete wish '%s'", user_id, str(wish))
-            return False
-
-    def _require_wish_builder(self, user_id: int) -> WishBuilder:
-        wish_builder = self._incomplete_wish_by_user.get(user_id)
-        if wish_builder is None:
-            wish_builder = WishBuilder(None, None)
-            self._incomplete_wish_by_user[user_id] = wish_builder
-            self._log.debug("_require_wish_builder(%d) -> wish builder created", user_id)
-        return wish_builder
-
-    def _discard_wish_builder(self, user_id: int) -> None:
-        if self._incomplete_wish_by_user.get(user_id):
-            self._incomplete_wish_by_user.pop(user_id)
-            self._log.debug("_discard_wish_builder(%d) -> incomplete wish discarded", user_id)
-        else:
-            self._log.debug("_discard_wish_builder(%d) -> incomplete wish not found", user_id)
+        self._log.debug('register_user(%s) -> new user created', str(user))
+        return True
