@@ -54,7 +54,7 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
         return result
 
     async def update_wish(self, wish: WishlistRecord) -> bool:
-        result = await self.update_wish(wish)
+        result = await self._memory_storage.update_wish(wish)
         if result:
             self._store_to_file()
         return result
