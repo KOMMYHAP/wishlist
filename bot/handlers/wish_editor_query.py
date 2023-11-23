@@ -31,33 +31,29 @@ async def wish_editor_query(call: CallbackQuery, bot: AsyncTeleBot,
         wish = await wish_manager.get_wish(call.from_user.id, wish_id)
         if wish is None:
             logger.error('Trying to query editor for invalid wish id %d', wish_id)
-            raise NotImplementedError
+            await bot.send_message(call.message.chat.id, 'Я не смог найти это желание, может попробуем с другим?')
+            return
         wish_draft = WishDraft(call.message.id, wish.title, wish.references, wish.wish_id)
 
     await state.update_wish_draft(call.from_user.id, wish_draft)
 
-    await open_wish_editor_in_last_message(call, bot, state, logger)
+    await open_wish_editor_in_last_message(call, bot, wish_draft, logger)
 
 
 async def open_wish_editor_in_last_message(call: CallbackQuery, bot: AsyncTeleBot,
-                                           state: StateBaseAdapter, logger: Logger):
+                                           wish_draft: WishDraft, logger: Logger):
     await _open_wish_editor(call.message.chat.id, call.message.id, call.from_user.id,
-                            False, bot, state, logger)
+                            False, bot, wish_draft, logger)
 
 
 async def open_wish_editor_in_new_message(message: Message, bot: AsyncTeleBot,
-                                          state: StateBaseAdapter, logger: Logger):
-    await _open_wish_editor(message.chat.id, message.id, message.from_user.id, True, bot, state, logger)
+                                          wish_draft: WishDraft, logger: Logger):
+    await _open_wish_editor(message.chat.id, message.id, message.from_user.id, True, bot, wish_draft, logger)
 
 
 async def _open_wish_editor(chat_id: int, message_id: int, user_id: int, send_new_message: bool, bot: AsyncTeleBot,
-                            state: StateBaseAdapter,
+                            wish_draft: WishDraft,
                             logger: Logger):
-    wish_draft = await state.get_wish_draft(user_id)
-    if wish_draft is None:
-        logger.error("Failed to open wish editor: wish draft not created!")
-        raise NotImplementedError
-
     title = wish_draft.title if len(wish_draft.title) > 0 else "<нет названия>"
     references = '<нет ссылок>'
     if len(wish_draft.references) == 1:

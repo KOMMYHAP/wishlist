@@ -25,4 +25,4 @@ async def wish_edit_reference_handler(message: Message, bot: AsyncTeleBot,
     wish_draft.references = reference.split('\n')
     await state.update_wish_draft(user_id, wish_draft)
 
-    await open_wish_editor_in_new_message(message, bot, state, logger)
+    await open_wish_editor_in_new_message(message, bot, wish_draft, logger)
