@@ -1,7 +1,4 @@
 from dataclasses import dataclass
-from enum import Enum
-
-from bot.types.wish_edit_states import WishEditStates
 
 
 @dataclass
