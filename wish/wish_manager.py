@@ -43,9 +43,8 @@ class WishManager:
             wish_draft.wish_id,
             user_id,
             wish_draft.title,
-            '',
-            0.0,
-            wish_draft.references,
+            wish_draft.hint,
+            wish_draft.cost,
             old_wish.reserved_by_user_id,
             old_wish.performed
         ))
@@ -56,9 +55,8 @@ class WishManager:
             0,
             user_id,
             wish_draft.title,
-            '',
-            0.0,
-            wish_draft.references,
+            wish_draft.hint,
+            wish_draft.cost,
             None,
             False
         ))

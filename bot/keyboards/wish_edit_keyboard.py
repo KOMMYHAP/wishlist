@@ -18,18 +18,10 @@ def make_wish_edit_keyboard(editor_id: int) -> InlineKeyboardMarkup:
             text='Описание',
             callback_data=wish_edit_action_callback_data.new(action=WishEditStates.HINT.value,
                                                              editor_id=editor_id)
-        )
-    )
-
-    keyboard.row(
+        ),
         InlineKeyboardButton(
             text='Стоимость',
             callback_data=wish_edit_action_callback_data.new(action=WishEditStates.COST.value, editor_id=editor_id)
-        ),
-        InlineKeyboardButton(
-            text='Ссылки',
-            callback_data=wish_edit_action_callback_data.new(action=WishEditStates.REFERENCES.value,
-                                                             editor_id=editor_id)
         )
     )
 

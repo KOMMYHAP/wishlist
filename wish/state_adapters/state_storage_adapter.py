@@ -53,7 +53,6 @@ class StateStorageAdapter(StateBaseAdapter):
                 data['editor_id'],
                 data['title'],
                 data['hint'],
-                data['references'],
                 data['cost'],
                 data['wish_id'],
             )
@@ -69,7 +68,6 @@ class StateStorageAdapter(StateBaseAdapter):
             'editor_id': wish_draft.editor_id,
             'title': wish_draft.title,
             'hint': wish_draft.hint,
-            'references': wish_draft.references,
             'cost': wish_draft.cost,
             'wish_id': wish_draft.wish_id,
         })

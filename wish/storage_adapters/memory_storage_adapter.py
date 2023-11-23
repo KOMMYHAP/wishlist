@@ -90,7 +90,6 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
                 str(wish_data['title']),
                 str(wish_data['hint']),
                 wish_data['cost'],
-                list(wish_data['references']),
                 wish_data['reserved_by_user_id'],
                 wish_data['performed']
             )
@@ -114,7 +113,6 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         wish_data['title'] = str(wish.title)
         wish_data['hint'] = str(wish.hint)
         wish_data['cost'] = wish.cost
-        wish_data['references'] = list(wish.references)
         wish_data['reserved_by_user_id'] = wish.reserved_by_user_id
         wish_data['performed'] = wish.performed
         return True
