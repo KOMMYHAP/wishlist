@@ -68,7 +68,6 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
     def _load_from_file(self):
         try:
             with open(self._filename, 'r', encoding='utf-8') as f:
-                # root_data = _byteify(json.load(f, object_hook=_byteify), ignore_dicts=True)
                 root_data = json.load(f)
                 self._memory_storage.wishes = {}
                 for key, value in root_data['wishes'].items():
