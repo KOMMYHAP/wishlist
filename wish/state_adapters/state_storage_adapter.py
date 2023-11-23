@@ -52,7 +52,9 @@ class StateStorageAdapter(StateBaseAdapter):
             return WishDraft(
                 data['editor_id'],
                 data['title'],
+                data['hint'],
                 data['references'],
+                data['cost'],
                 data['wish_id'],
             )
         except KeyError as e:
@@ -66,7 +68,9 @@ class StateStorageAdapter(StateBaseAdapter):
         return await self._set_user_data(user_id, 'wish_draft', {
             'editor_id': wish_draft.editor_id,
             'title': wish_draft.title,
+            'hint': wish_draft.hint,
             'references': wish_draft.references,
+            'cost': wish_draft.cost,
             'wish_id': wish_draft.wish_id,
         })
 

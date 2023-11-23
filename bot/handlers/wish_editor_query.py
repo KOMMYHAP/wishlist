@@ -26,14 +26,14 @@ async def wish_editor_query(call: CallbackQuery, bot: AsyncTeleBot,
         await state.delete_wish_draft(call.from_user.id)
 
     if should_create_new_wish:
-        wish_draft = WishDraft(call.message.id, '', [], None)
+        wish_draft = WishDraft(call.message.id, '', '', [], 0.0, None)
     else:
         wish = await wish_manager.get_wish(call.from_user.id, wish_id)
         if wish is None:
             logger.error('Trying to query editor for invalid wish id %d', wish_id)
             await bot.reply_to(call.message, 'Я не смог найти это желание, может попробуем с другим?')
             return
-        wish_draft = WishDraft(call.message.id, wish.title, wish.references, wish.wish_id)
+        wish_draft = WishDraft(call.message.id, wish.title, wish.hint, wish.references, wish.cost, wish.wish_id)
 
     await state.update_wish_draft(call.from_user.id, wish_draft)
 
@@ -50,16 +50,21 @@ async def open_wish_editor_in_new_message(message: Message, bot: AsyncTeleBot, w
 
 async def _open_wish_editor(chat_id: int, message_id: int, send_new_message: bool, bot: AsyncTeleBot,
                             wish_draft: WishDraft):
-    title = wish_draft.title if len(wish_draft.title) > 0 else "<нет названия>"
-    references = '<нет ссылок>'
+    title = wish_draft.title if len(wish_draft.title) > 0 else "<название отсутствует>"
+    references = '<ссылки не указаны>'
     if len(wish_draft.references) == 1:
         references = wish_draft.references[0]
     elif len(wish_draft.references) > 0:
         references = '\n - '.join(wish_draft.references)
+    hint = wish_draft.hint if len(wish_draft.hint) > 0 else "<описание отсутствует>"
+    cost = "{:.2f}".format(wish_draft.cost)
 
-    text = ("Редактор:\n"
-            f"Название: {title}\n"
-            f"Ссылка: {references}\n")
+    text = f""""Редактор желаний:
+Название: {title}
+Описание: {hint}
+Стоимость: {cost}
+Ссылки: {references}
+"""
 
     if send_new_message:
         await bot.send_message(chat_id, text, reply_markup=make_wish_edit_keyboard(wish_draft.editor_id))
