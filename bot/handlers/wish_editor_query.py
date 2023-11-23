@@ -17,13 +17,13 @@ async def wish_editor_query(call: CallbackQuery, bot: AsyncTeleBot,
     callback_data: dict = wish_editor_callback_data.parse(callback_data=call.data)
     wish_id = int(callback_data['id'])
     should_create_new_wish = wish_id < 0
+
+    await bot.answer_callback_query(call.id)
     wish_draft = await state.get_wish_draft(call.from_user.id)
 
     if wish_draft and wish_draft.editor_id != call.message.id:
-        await bot.send_message(call.message.chat.id,
-                               'Если ты хочешь отредактировать другое желание, '
-                               'то сначала необходимо отменить редактирование текущего')
-        return
+        await bot.send_message(call.message.chat.id, "Оки, давай отредактируем другое желание")
+        await state.delete_wish_draft(call.from_user.id)
 
     if should_create_new_wish:
         wish_draft = WishDraft(call.message.id, '', [], None)
