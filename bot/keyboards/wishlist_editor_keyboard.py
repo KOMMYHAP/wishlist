@@ -5,8 +5,8 @@ from bot.filters.wishlist_filter import wishlist_callback_data
 from wish.wish_manager import WishlistResponse
 
 
-def generate_wishlist_keyboard(wish_response: WishlistResponse, page_idx: int,
-                               wishes_per_page: int) -> InlineKeyboardMarkup:
+def generate_wishlist_editor_keyboard(wish_response: WishlistResponse, page_idx: int,
+                                      wishes_per_page: int) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup()
 
     first_page_idx = 0

@@ -2,7 +2,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import CallbackQuery, User
 
 from bot.filters.wishlist_filter import wishlist_callback_data
-from bot.keyboards.wishlist_keyboard import generate_wishlist_keyboard
+from bot.keyboards.wishlist_editor_keyboard import generate_wishlist_editor_keyboard
 from wish.wish_manager import WishManager
 
 
@@ -23,4 +23,4 @@ async def show_wishlist(user: User, bot: AsyncTeleBot,
 
     await bot.send_message(chat_id=user.id,
                            text=text,
-                           reply_markup=generate_wishlist_keyboard(response, page_idx, wishes_per_page))
+                           reply_markup=generate_wishlist_editor_keyboard(response, page_idx, wishes_per_page))
