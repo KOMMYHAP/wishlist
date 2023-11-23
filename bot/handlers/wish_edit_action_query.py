@@ -1,6 +1,7 @@
 from logging import Logger
 
 from telebot.async_telebot import AsyncTeleBot
+from telebot.asyncio_helper import ApiTelegramException
 from telebot.types import CallbackQuery
 
 from bot.filters.wish_edit_action_filter import wish_edit_action_callback_data
@@ -16,6 +17,22 @@ async def wish_edit_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_ma
 
     callback_data: dict = wish_edit_action_callback_data.parse(callback_data=call.data)
     action = int(callback_data['action'])
+    editor_id = int(callback_data['editor_id'])
+
+    try:
+        await bot.answer_callback_query(call.id)
+    except ApiTelegramException as e:
+        logger.warning('Bot exception occurred!', exc_info=e)
+
+    wish_draft = await state.get_wish_draft(call.from_user.id)
+    if wish_draft is None:
+        await bot.send_message(call.message.chat.id, 'Извини, но не мог бы ты повторить последнее желание?')
+        return
+
+    if wish_draft.editor_id != editor_id:
+        await bot.send_message(call.message.chat.id,
+                               'Пожалуйста, используй кнопки с последнего открытого окна редактирования!')
+        return
 
     reply_text_dict = {
         WishEditStates.REFERENCES.value: 'Введи ссылку',
@@ -26,10 +43,11 @@ async def wish_edit_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_ma
 
     action_data = reply_text_dict.get(action)
     if action_data is None:
-        raise NotImplementedError
+        await bot.send_message(call.message.chat.id,
+                               'Кажется я не понимаю о чем ты!')
+        return
 
     await bot.set_state(call.from_user.id, action)
-    await bot.answer_callback_query(call.id)
 
     if action == WishEditStates.COMPLETION:
         await _wish_apply(call, bot, wish_manager, state, logger)
@@ -45,7 +63,7 @@ async def _wish_apply(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
     wish_draft = await state.get_wish_draft(call.from_user.id)
     if wish_draft is None:
         logger.error('Wish draft is missing, nothing to apply!')
-        raise NotImplementedError
+        return
 
     if wish_draft.wish_id is None:
         await wish_manager.create_wish(call.from_user.id, wish_draft)

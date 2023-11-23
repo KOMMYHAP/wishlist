@@ -18,17 +18,23 @@ async def wish_editor_query(call: CallbackQuery, bot: AsyncTeleBot,
     wish_id = int(callback_data['id'])
     should_create_new_wish = wish_id < 0
     wish_draft = await state.get_wish_draft(call.from_user.id)
-    if wish_draft is None:
-        if should_create_new_wish:
-            wish_draft = WishDraft('', [], None)
-        else:
-            wish = await wish_manager.get_wish(call.from_user.id, wish_id)
-            if wish is None:
-                logger.error('Trying to query editor for invalid wish id %d', wish_id)
-                raise NotImplementedError
-            wish_draft = WishDraft(wish.title, wish.references, wish.wish_id)
 
-        await state.update_wish_draft(call.from_user.id, wish_draft)
+    if wish_draft and wish_draft.editor_id != call.message.id:
+        await bot.send_message(call.message.chat.id,
+                               'Если ты хочешь отредактировать другое желание, '
+                               'то сначала необходимо отменить редактирование текущего')
+        return
+
+    if should_create_new_wish:
+        wish_draft = WishDraft(call.message.id, '', [], None)
+    else:
+        wish = await wish_manager.get_wish(call.from_user.id, wish_id)
+        if wish is None:
+            logger.error('Trying to query editor for invalid wish id %d', wish_id)
+            raise NotImplementedError
+        wish_draft = WishDraft(call.message.id, wish.title, wish.references, wish.wish_id)
+
+    await state.update_wish_draft(call.from_user.id, wish_draft)
 
     await open_wish_editor_in_last_message(call, bot, state, logger)
 
@@ -64,6 +70,7 @@ async def _open_wish_editor(chat_id: int, message_id: int, user_id: int, send_ne
             f"Ссылка: {references}\n")
 
     if send_new_message:
-        await bot.send_message(chat_id, text, reply_markup=make_wish_edit_keyboard())
+        await bot.send_message(chat_id, text, reply_markup=make_wish_edit_keyboard(wish_draft.editor_id))
     else:
-        await bot.edit_message_text(text, chat_id, message_id, reply_markup=make_wish_edit_keyboard())
+        await bot.edit_message_text(text, chat_id, message_id,
+                                    reply_markup=make_wish_edit_keyboard(wish_draft.editor_id))

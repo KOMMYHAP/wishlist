@@ -44,14 +44,16 @@ class StateStorageAdapter(StateBaseAdapter):
         return result
 
     async def get_wish_draft(self, user_id: int) -> WishDraft | None:
+        self._logger.debug('get_wish_draft(%d)', user_id)
         data = await self._get_user_data(user_id, 'wish_draft')
         if data is None:
             return None
         try:
             return WishDraft(
+                data['editor_id'],
                 data['title'],
                 data['references'],
-                data['wish_id']
+                data['wish_id'],
             )
         except KeyError as e:
             self._logger.exception(
@@ -60,11 +62,14 @@ class StateStorageAdapter(StateBaseAdapter):
             return None
 
     async def update_wish_draft(self, user_id: int, wish_draft: WishDraft) -> bool:
+        self._logger.debug('update_wish_draft(%d, %s)', user_id, str(wish_draft))
         return await self._set_user_data(user_id, 'wish_draft', {
+            'editor_id': wish_draft.editor_id,
             'title': wish_draft.title,
             'references': wish_draft.references,
-            'wish_id': wish_draft.wish_id
+            'wish_id': wish_draft.wish_id,
         })
 
     async def delete_wish_draft(self, user_id: int) -> bool:
+        self._logger.debug('delete_wish_draft(%d)', user_id)
         return await self._set_user_data(user_id, 'wish_draft', None)
