@@ -13,10 +13,7 @@ async def wishlist_get(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wis
 
 
 async def show_wishlist(user: User, bot: AsyncTeleBot,
-                        wish_manager: WishManager, page_idx: int | None) -> None:
-    if page_idx is None:
-        page_idx = 0
-
+                        wish_manager: WishManager, page_idx: int) -> None:
     wishes_per_page = wish_manager.wish_per_page
 
     response = await wish_manager.get_wishlist(user.id, user.username)
