@@ -18,7 +18,7 @@ def generate_wishlist_keyboard(wish_response: WishlistResponse, page_idx: int,
 
         wish_record = wish_response.wishlist[wish_idx]
         keyboard.row(InlineKeyboardButton(
-            text=f"#{wish_idx}. {wish_record.title}",
+            text=f"{wish_idx + 1}. {wish_record.title}",
             callback_data=wish_editor_callback_data.new(id=wish_record.wish_id))
         )
 
