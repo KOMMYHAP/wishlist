@@ -4,12 +4,12 @@ from logging import Logger
 from wish.storage_adapters.base_storage_adapter import WishStorageBaseAdapter
 from wish.types.user import User
 from wish.types.wish_draft import WishDraft
-from wish.types.wishlist_record import WishlistRecord
+from wish.types.wish_record import WishRecord
 
 
 @dataclass
 class WishlistResponse:
-    wishlist: list[WishlistRecord]
+    wishlist: list[WishRecord]
     owner: User | None
     reservation_map: dict[int, User]
 
@@ -26,7 +26,7 @@ class WishManager:
         self.wish_per_page = 5
         pass
 
-    async def get_wish(self, user_id: int, wish_id: int) -> WishlistRecord | None:
+    async def get_wish(self, user_id: int, wish_id: int) -> WishRecord | None:
         self._log.debug('get_wish(%d, %d)', user_id, wish_id)
         return await self._storage.get_wish(wish_id)
 
@@ -39,7 +39,7 @@ class WishManager:
         if old_wish.performed:
             self._log.warning('trying to update wish which is already performed')
             return False
-        return await self._storage.update_wish(WishlistRecord(
+        return await self._storage.update_wish(WishRecord(
             wish_draft.wish_id,
             user_id,
             wish_draft.title,
@@ -51,7 +51,7 @@ class WishManager:
 
     async def create_wish(self, user_id: int, wish_draft: WishDraft) -> bool:
         self._log.debug('create_wish(%d, %s)', user_id, str(wish_draft))
-        return await self._storage.create_wish(WishlistRecord(
+        return await self._storage.create_wish(WishRecord(
             0,
             user_id,
             wish_draft.title,

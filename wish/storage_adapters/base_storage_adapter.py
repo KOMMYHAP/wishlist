@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from wish.types.user import User
-from wish.types.wishlist_record import WishlistRecord
+from wish.types.wish_record import WishRecord
 
 
 class WishStorageBaseAdapter(ABC):
@@ -26,19 +26,19 @@ class WishStorageBaseAdapter(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_wishlist(self, user_id: int) -> list[WishlistRecord]:
+    async def get_wishlist(self, user_id: int) -> list[WishRecord]:
         raise NotImplementedError
 
     @abstractmethod
-    async def create_wish(self, wish: WishlistRecord) -> bool:
+    async def create_wish(self, wish: WishRecord) -> bool:
         raise NotImplementedError
 
     @abstractmethod
-    async def get_wish(self, wish_id: int) -> WishlistRecord | None:
+    async def get_wish(self, wish_id: int) -> WishRecord | None:
         raise NotImplementedError
 
     @abstractmethod
-    async def update_wish(self, wish: WishlistRecord) -> bool:
+    async def update_wish(self, wish: WishRecord) -> bool:
         raise NotImplementedError
 
     @abstractmethod

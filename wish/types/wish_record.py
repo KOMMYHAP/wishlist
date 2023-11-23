@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class WishlistRecord:
+class WishRecord:
     wish_id: int
     owner_id: int  # same as User.id
     title: str

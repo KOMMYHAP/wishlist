@@ -4,7 +4,7 @@ import logging
 from wish.storage_adapters.base_storage_adapter import WishStorageBaseAdapter
 from wish.storage_adapters.memory_storage_adapter import WishStorageMemoryAdapter
 from wish.types.user import User
-from wish.types.wishlist_record import WishlistRecord
+from wish.types.wish_record import WishRecord
 
 
 class WishStorageFileAdapter(WishStorageBaseAdapter):
@@ -39,21 +39,21 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
             self._store_to_file()
         return result
 
-    async def get_wishlist(self, user_id: int) -> list[WishlistRecord]:
+    async def get_wishlist(self, user_id: int) -> list[WishRecord]:
         result = await self._memory_storage.get_wishlist(user_id)
         return result
 
-    async def create_wish(self, wish: WishlistRecord) -> bool:
+    async def create_wish(self, wish: WishRecord) -> bool:
         result = await self._memory_storage.create_wish(wish)
         if result:
             self._store_to_file()
         return result
 
-    async def get_wish(self, wish_id: int) -> WishlistRecord | None:
+    async def get_wish(self, wish_id: int) -> WishRecord | None:
         result = await self._memory_storage.get_wish(wish_id)
         return result
 
-    async def update_wish(self, wish: WishlistRecord) -> bool:
+    async def update_wish(self, wish: WishRecord) -> bool:
         result = await self._memory_storage.update_wish(wish)
         if result:
             self._store_to_file()

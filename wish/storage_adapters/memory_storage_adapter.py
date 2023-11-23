@@ -3,7 +3,7 @@ import logging
 
 from wish.storage_adapters.base_storage_adapter import WishStorageBaseAdapter
 from wish.types.user import User
-from wish.types.wishlist_record import WishlistRecord
+from wish.types.wish_record import WishRecord
 
 
 class WishStorageMemoryAdapter(WishStorageBaseAdapter):
@@ -62,8 +62,8 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         self.users.pop(user_id)
         return True
 
-    async def get_wishlist(self, user_id: int) -> list[WishlistRecord]:
-        wishlist: list[WishlistRecord] = []
+    async def get_wishlist(self, user_id: int) -> list[WishRecord]:
+        wishlist: list[WishRecord] = []
         for wish_id, wish_data in self.wishes.items():
             if wish_data['owner_id'] != user_id:
                 continue
@@ -72,7 +72,7 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
                 wishlist.append(wish)
         return wishlist
 
-    async def create_wish(self, wish: WishlistRecord) -> bool:
+    async def create_wish(self, wish: WishRecord) -> bool:
         wish.wish_id = len(self.wishes) + 1
         wish_data = self.wishes.get(wish.wish_id)
         if wish_data is not None:
@@ -82,9 +82,9 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         await self.update_wish(wish)
         return True
 
-    def _get_wish_record(self, wish_data: dict) -> WishlistRecord | None:
+    def _get_wish_record(self, wish_data: dict) -> WishRecord | None:
         try:
-            return WishlistRecord(
+            return WishRecord(
                 wish_data['wish_id'],
                 wish_data['owner_id'],
                 str(wish_data['title']),
@@ -97,13 +97,13 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
             self._log.exception('wish data %s', json.dumps(wish_data, indent='  '), exc_info=e)
             return None
 
-    async def get_wish(self, wish_id: int) -> WishlistRecord | None:
+    async def get_wish(self, wish_id: int) -> WishRecord | None:
         wish_data = self.wishes.get(wish_id)
         if wish_data is None:
             return None
         return self._get_wish_record(wish_data)
 
-    async def update_wish(self, wish: WishlistRecord) -> bool:
+    async def update_wish(self, wish: WishRecord) -> bool:
         wish_data = self.wishes.get(wish.wish_id)
         if wish_data is None:
             return False
