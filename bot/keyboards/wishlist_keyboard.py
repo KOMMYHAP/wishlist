@@ -1,6 +1,6 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot.filters.wish_editor_query_filter import wish_editor_callback_data
+from bot.filters.wish_editor_query_filter import wish_editor_callback_data, wish_editor_new_marker
 from bot.filters.wish_none_filter import wish_blocked_callback_data
 from bot.filters.wishlist_filter import wishlist_callback_data
 from wish.wish_manager import WishlistResponse
@@ -19,7 +19,7 @@ def generate_wishlist_keyboard(wishes: WishlistResponse, page_idx: int, wishes_p
         wish_record = wishes.wishlist[wish_idx]
         keyboard.row(InlineKeyboardButton(
             text=f"#{wish_idx}. {wish_record.title}",
-            callback_data=wish_editor_callback_data.new(id=wish_record.wish_id, new=False))
+            callback_data=wish_editor_callback_data.new(id=wish_record.wish_id))
         )
 
     if back_navigation_restricted:
@@ -32,7 +32,7 @@ def generate_wishlist_keyboard(wishes: WishlistResponse, page_idx: int, wishes_p
     else:
         next_callback = wishlist_callback_data.new(page_idx=page_idx + 1)
 
-    create_wish_callback = wish_editor_callback_data.new(id=0, new=True)
+    create_wish_callback = wish_editor_callback_data.new(id=wish_editor_new_marker)
 
     keyboard.row(
         InlineKeyboardButton(text="←", callback_data=back_callback),

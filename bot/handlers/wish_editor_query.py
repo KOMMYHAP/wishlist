@@ -16,7 +16,7 @@ async def wish_editor_query(call: CallbackQuery, bot: AsyncTeleBot,
 
     callback_data: dict = wish_editor_callback_data.parse(callback_data=call.data)
     wish_id = int(callback_data['id'])
-    should_create_new_wish = bool(callback_data['new'])
+    should_create_new_wish = wish_id < 0
     wish_draft = await state.get_wish_draft(call.from_user.id)
     if wish_draft is None:
         if should_create_new_wish:
