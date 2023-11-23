@@ -31,7 +31,7 @@ class WishManager:
         return await self._storage.get_wish(wish_id)
 
     async def update_wish(self, user_id: int, wish_draft: WishDraft) -> bool:
-        self._log.debug('update_wish(%d, %s, %d)', user_id, str(wish_draft))
+        self._log.debug('update_wish(%d, %s)', user_id, str(wish_draft))
         old_wish = await self.get_wish(user_id, wish_draft.wish_id)
         if old_wish is None:
             self._log.error('wish %d was not found to update!', wish_draft.wish_id)
