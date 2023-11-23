@@ -43,8 +43,10 @@ class WishManager:
             wish_draft.wish_id,
             user_id,
             wish_draft.title,
+            '',
+            0.0,
             wish_draft.references,
-            old_wish.reserved_by_user,
+            old_wish.reserved_by_user_id,
             old_wish.performed
         ))
 
@@ -54,6 +56,8 @@ class WishManager:
             0,
             user_id,
             wish_draft.title,
+            '',
+            0.0,
             wish_draft.references,
             None,
             False
@@ -70,7 +74,7 @@ class WishManager:
         wishlist = await self._storage.get_wishlist(target_user.id)
         response = WishlistResponse(wishlist, target_user, {})
         for wish in wishlist:
-            if wish.reserved_by_user is None:
+            if wish.reserved_by_user_id is None:
                 continue
             reserved_by_user = await self._storage.get_user_by_id(wish.owner_id)
             response.reservation_map[wish.wish_id] = reserved_by_user

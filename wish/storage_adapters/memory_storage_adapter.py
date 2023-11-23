@@ -67,19 +67,9 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         for wish_id, wish_data in self.wishes.items():
             if wish_data['owner_id'] != user_id:
                 continue
-            try:
-                wish = WishlistRecord(
-                    wish_id,
-                    wish_data['owner_id'],
-                    str(wish_data['title']),
-                    list(wish_data['references']),
-                    wish_data['reserved_by_user_id'],
-                    wish_data['performed']
-                )
-            except KeyError as e:
-                self._log.exception('user id %d, wish data %s', user_id, json.dumps(wish_data, indent='  '), exc_info=e)
-                return []
-            wishlist.append(wish)
+            wish = self._get_wish_record(wish_data)
+            if wish is not None:
+                wishlist.append(wish)
         return wishlist
 
     async def create_wish(self, wish: WishlistRecord) -> bool:
@@ -87,40 +77,45 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         wish_data = self.wishes.get(wish.wish_id)
         if wish_data is not None:
             return False
-        wish_data = {
-            'wish_id': wish.wish_id,
-            'owner_id': wish.owner_id,
-            'title': str(wish.title),
-            'references': list(wish.references),
-            'reserved_by_user_id': wish.reserved_by_user,
-            'performed': wish.performed,
-        }
-        self.wishes[wish.wish_id] = wish_data
+
+        self.wishes[wish.wish_id] = {}
+        await self.update_wish(wish)
         return True
+
+    def _get_wish_record(self, wish_data: dict) -> WishlistRecord | None:
+        try:
+            return WishlistRecord(
+                wish_data['wish_id'],
+                wish_data['owner_id'],
+                str(wish_data['title']),
+                str(wish_data['hint']),
+                wish_data['cost'],
+                list(wish_data['references']),
+                wish_data['reserved_by_user_id'],
+                wish_data['performed']
+            )
+        except KeyError as e:
+            self._log.exception('wish data %s', json.dumps(wish_data, indent='  '), exc_info=e)
+            return None
 
     async def get_wish(self, wish_id: int) -> WishlistRecord | None:
         wish_data = self.wishes.get(wish_id)
         if wish_data is None:
             return None
-        wish = WishlistRecord(
-            wish_id,
-            wish_data['owner_id'],
-            str(wish_data['title']),
-            list(wish_data['references']),
-            wish_data['reserved_by_user_id'],
-            wish_data['performed']
-        )
-        return wish
+        return self._get_wish_record(wish_data)
 
     async def update_wish(self, wish: WishlistRecord) -> bool:
         wish_data = self.wishes.get(wish.wish_id)
         if wish_data is None:
             return False
+
         wish_data['wish_id'] = wish.wish_id
         wish_data['owner_id'] = wish.owner_id
         wish_data['title'] = str(wish.title)
+        wish_data['hint'] = str(wish.hint)
+        wish_data['hint'] = wish.cost
         wish_data['references'] = list(wish.references)
-        wish_data['reserved_by_user_id'] = wish.reserved_by_user
+        wish_data['reserved_by_user_id'] = wish.reserved_by_user_id
         wish_data['performed'] = wish.performed
         return True
 
