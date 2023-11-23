@@ -32,6 +32,7 @@ class StateStorageAdapter(StateBaseAdapter):
 
         user_data: dict = await self._state_storage.get_data(user_id, user_id)
         if user_data is None:
+            self._logger.debug('Creating new user data: user id %d', user_id)
             await self._state_storage.set_state(user_id, user_id, None)
             await self._state_storage.set_data(user_id, user_id, '__creation_time', datetime.datetime.now(datetime.UTC))
 
