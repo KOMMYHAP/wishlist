@@ -53,7 +53,7 @@ async def _open_wish_editor(chat_id: int, message_id: int, send_new_message: boo
     title = wish_draft.title if len(wish_draft.title) > 0 else "<название отсутствует>"
     hint = wish_draft.hint if len(wish_draft.hint) > 0 else "<описание отсутствует>"
     cost = "{:.2f}".format(wish_draft.cost)
-    text = f""""Редактор желания:
+    text = f"""Редактор желания:
 Название: {title}
 Стоимость: {cost}
 Описание: {hint}
