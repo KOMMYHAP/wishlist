@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from logging import Logger
 
+from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
+from bot.handlers.wish_viewer.wish_viewer_draft import WishViewerDraft
 from wish.storage_adapters.base_storage_adapter import WishStorageBaseAdapter
 from wish.types.user import User
-from wish.types.wish_draft import WishDraft
 from wish.types.wish_record import WishRecord
 
 
@@ -26,13 +27,20 @@ class WishManager:
         self.wish_per_page = 5
         pass
 
-    async def get_wish(self, user_id: int, wish_id: int) -> WishRecord | None:
-        self._log.debug('get_wish(%d, %d)', user_id, wish_id)
+    async def find_username(self, user_id: int) -> str | None:
+        self._log.debug('find_username(%d)', user_id)
+        user = await self._storage.get_user_by_id(user_id)
+        if user is None:
+            return None
+        return user.name
+
+    async def get_wish(self, wish_id: int) -> WishRecord | None:
+        self._log.debug('get_wish(%d)', wish_id)
         return await self._storage.get_wish(wish_id)
 
-    async def update_wish(self, user_id: int, wish_draft: WishDraft) -> bool:
-        self._log.debug('update_wish(%d, %s)', user_id, str(wish_draft))
-        old_wish = await self.get_wish(user_id, wish_draft.wish_id)
+    async def update_wish_by_editor(self, editor_user_id: int, wish_draft: WishEditorDraft) -> bool:
+        self._log.debug('update_wish(%d, %s)', editor_user_id, str(wish_draft))
+        old_wish = await self.get_wish(wish_draft.wish_id)
         if old_wish is None:
             self._log.error('wish %d was not found to update!', wish_draft.wish_id)
             return False
@@ -41,7 +49,7 @@ class WishManager:
             return False
         return await self._storage.update_wish(WishRecord(
             wish_draft.wish_id,
-            user_id,
+            editor_user_id,
             wish_draft.title,
             wish_draft.hint,
             wish_draft.cost,
@@ -49,7 +57,34 @@ class WishManager:
             old_wish.performed
         ))
 
-    async def create_wish(self, user_id: int, wish_draft: WishDraft) -> bool:
+    async def update_wish_by_viewer(self, viewer_user_id: int, wish_viewer_draft: WishViewerDraft) -> bool:
+        self._log.debug('update_wish(%d, %s)', viewer_user_id, str(wish_viewer_draft))
+        old_wish = await self.get_wish(wish_viewer_draft.wish_id)
+        if old_wish is None:
+            self._log.error('wish %d was not found to update!', wish_viewer_draft.wish_id)
+            return False
+        if old_wish.performed:
+            self._log.warning('trying to update wish which is already performed')
+            return False
+        if wish_viewer_draft.reserved and old_wish.reserved_by_user_id is not None:
+            self._log.warning('trying to reserve with which is already reserved!')
+            return False
+
+        reserved_by_user_id: int | None = old_wish.reserved_by_user_id
+        if wish_viewer_draft.reserved:
+            reserved_by_user_id = viewer_user_id
+
+        return await self._storage.update_wish(WishRecord(
+            wish_viewer_draft.wish_id,
+            old_wish.owner_id,
+            old_wish.title,
+            old_wish.hint,
+            old_wish.cost,
+            reserved_by_user_id,
+            old_wish.performed
+        ))
+
+    async def create_wish(self, user_id: int, wish_draft: WishEditorDraft) -> bool:
         self._log.debug('create_wish(%d, %s)', user_id, str(wish_draft))
         return await self._storage.create_wish(WishRecord(
             0,
@@ -61,12 +96,12 @@ class WishManager:
             False
         ))
 
-    async def get_wishlist(self, user_id: int, target_username: str) -> WishlistResponse:
-        self._log.debug('get_wishlist(%d, %s)', user_id, target_username)
+    async def get_wishlist(self, user_id: int, target_user_id: int) -> WishlistResponse:
+        self._log.debug('get_wishlist(%d, %d)', user_id, target_user_id)
 
-        target_user = await self._storage.get_user_by_name(target_username)
+        target_user = await self._storage.get_user_by_id(target_user_id)
         if target_user is None:
-            self._log.debug('get_wishlist(%d, %s) -> unknown target user', user_id, target_username)
+            self._log.debug('get_wishlist(%d, %d) -> unknown target user', user_id, target_user_id)
             return WishlistResponse([], None, {})
 
         wishlist = await self._storage.get_wishlist(target_user.id)

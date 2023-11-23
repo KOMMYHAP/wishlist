@@ -4,8 +4,9 @@ from logging import Logger
 
 from telebot.asyncio_storage import StateStorageBase
 
+from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
+from bot.handlers.wish_viewer.wish_viewer_draft import WishViewerDraft
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
-from wish.types.wish_draft import WishDraft
 
 
 class StateStorageAdapter(StateBaseAdapter):
@@ -43,13 +44,13 @@ class StateStorageAdapter(StateBaseAdapter):
                 user_id, str(key), json.dumps(value))
         return result
 
-    async def get_wish_draft(self, user_id: int) -> WishDraft | None:
-        self._logger.debug('get_wish_draft(%d)', user_id)
-        data = await self._get_user_data(user_id, 'wish_draft')
+    async def get_wish_editor_draft(self, user_id: int) -> WishEditorDraft | None:
+        self._logger.debug('get_wish_editor_draft(%d)', user_id)
+        data = await self._get_user_data(user_id, 'wish_editor_draft')
         if data is None:
             return None
         try:
-            return WishDraft(
+            return WishEditorDraft(
                 data['editor_id'],
                 data['title'],
                 data['hint'],
@@ -58,20 +59,51 @@ class StateStorageAdapter(StateBaseAdapter):
             )
         except KeyError as e:
             self._logger.exception(
-                'Failed to parse wish draft from user data! user id = %d, data = %s',
+                'Failed to parse wish editor draft from user data! user id = %d, data = %s',
                 user_id, json.dumps(data), exc_info=e)
             return None
 
-    async def update_wish_draft(self, user_id: int, wish_draft: WishDraft) -> bool:
-        self._logger.debug('update_wish_draft(%d, %s)', user_id, str(wish_draft))
-        return await self._set_user_data(user_id, 'wish_draft', {
-            'editor_id': wish_draft.editor_id,
-            'title': wish_draft.title,
-            'hint': wish_draft.hint,
-            'cost': wish_draft.cost,
-            'wish_id': wish_draft.wish_id,
+    async def update_wish_editor_draft(self, user_id: int, draft: WishEditorDraft) -> bool:
+        self._logger.debug('update_wish_editor_draft(%d, %s)', user_id, str(draft))
+        return await self._set_user_data(user_id, 'wish_editor_draft', {
+            'editor_id': draft.editor_id,
+            'title': draft.title,
+            'hint': draft.hint,
+            'cost': draft.cost,
+            'wish_id': draft.wish_id,
         })
 
-    async def delete_wish_draft(self, user_id: int) -> bool:
-        self._logger.debug('delete_wish_draft(%d)', user_id)
-        return await self._set_user_data(user_id, 'wish_draft', None)
+    async def delete_wish_editor_draft(self, user_id: int) -> bool:
+        self._logger.debug('delete_wish_editor_draft(%d)', user_id)
+        return await self._set_user_data(user_id, 'wish_editor_draft', None)
+
+    async def get_wish_viewer_draft(self, user_id: int) -> WishViewerDraft | None:
+        self._logger.debug('get_wish_viewer_draft(%d)', user_id)
+        data = await self._get_user_data(user_id, 'wish_viewer_draft')
+        if data is None:
+            return None
+        try:
+            return WishViewerDraft(
+                data['editor_id'],
+                data['viewer_id'],
+                data['wish_id'],
+                data['reserved'],
+            )
+        except KeyError as e:
+            self._logger.exception(
+                'Failed to parse wish viewer draft from user data! user id = %d, data = %s',
+                user_id, json.dumps(data), exc_info=e)
+            return None
+
+    async def update_wish_viewer_draft(self, user_id: int, draft: WishViewerDraft) -> bool:
+        self._logger.debug('update_wish_editor_draft(%d, %s)', user_id, str(draft))
+        return await self._set_user_data(user_id, 'wish_viewer_draft', {
+            'editor_id': draft.editor_id,
+            'viewer_id': draft.viewer_id,
+            'reserved': draft.reserved,
+            'wish_id': draft.wish_id,
+        })
+
+    async def delete_wish_viewer_draft(self, user_id: int) -> bool:
+        self._logger.debug('delete_wish_viewer_draft(%d)', user_id)
+        return await self._set_user_data(user_id, 'wish_viewer_draft', None)

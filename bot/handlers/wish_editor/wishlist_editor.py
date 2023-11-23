@@ -5,11 +5,11 @@ from bot.keyboards.wishlist_editor_keyboard import generate_wishlist_editor_keyb
 from wish.wish_manager import WishManager
 
 
-async def show_my_wishlist(user: User, bot: AsyncTeleBot,
-                           wish_manager: WishManager, page_idx: int) -> None:
+async def show_my_wishlist_editor(user: User, bot: AsyncTeleBot,
+                                  wish_manager: WishManager, page_idx: int) -> None:
     wishes_per_page = wish_manager.wish_per_page
 
-    response = await wish_manager.get_wishlist(user.id, user.username)
+    response = await wish_manager.get_wishlist(user.id, user.id)
     text = 'Список желаний'
     if len(response.wishlist) == 0:
         text = 'Список желаний пуст'

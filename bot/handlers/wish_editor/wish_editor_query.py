@@ -6,7 +6,7 @@ from telebot.types import CallbackQuery, Message
 from bot.filters.wish_editor_query_filter import wish_editor_callback_data
 from bot.keyboards.wish_edit_keyboard import make_wish_edit_keyboard
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
-from wish.types.wish_draft import WishDraft
+from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
 from wish.wish_manager import WishManager
 
 
@@ -19,37 +19,37 @@ async def wish_editor_query(call: CallbackQuery, bot: AsyncTeleBot,
     should_create_new_wish = wish_id < 0
 
     await bot.answer_callback_query(call.id)
-    wish_draft = await state.get_wish_draft(call.from_user.id)
+    wish_draft = await state.get_wish_editor_draft(call.from_user.id)
 
     if wish_draft and wish_draft.editor_id != call.message.id:
         await bot.reply_to(call.message, "Оки, давай отредактируем другое желание")
-        await state.delete_wish_draft(call.from_user.id)
+        await state.delete_wish_editor_draft(call.from_user.id)
 
     if should_create_new_wish:
-        wish_draft = WishDraft(call.message.id, '', '', 0.0, None)
+        wish_draft = WishEditorDraft(call.message.id, '', '', 0.0, None)
     else:
-        wish = await wish_manager.get_wish(call.from_user.id, wish_id)
+        wish = await wish_manager.get_wish(wish_id)
         if wish is None:
             logger.error('Trying to query editor for invalid wish id %d', wish_id)
             await bot.reply_to(call.message, 'Я не смог найти это желание, может попробуем с другим?')
             return
-        wish_draft = WishDraft(call.message.id, wish.title, wish.hint, wish.cost, wish.wish_id)
+        wish_draft = WishEditorDraft(call.message.id, wish.title, wish.hint, wish.cost, wish.wish_id)
 
-    await state.update_wish_draft(call.from_user.id, wish_draft)
+    await state.update_wish_editor_draft(call.from_user.id, wish_draft)
 
     await open_wish_editor_in_last_message(call, bot, wish_draft)
 
 
-async def open_wish_editor_in_last_message(call: CallbackQuery, bot: AsyncTeleBot, wish_draft: WishDraft):
+async def open_wish_editor_in_last_message(call: CallbackQuery, bot: AsyncTeleBot, wish_draft: WishEditorDraft):
     await _open_wish_editor(call.message.chat.id, call.message.id, False, bot, wish_draft)
 
 
-async def open_wish_editor_in_new_message(message: Message, bot: AsyncTeleBot, wish_draft: WishDraft):
+async def open_wish_editor_in_new_message(message: Message, bot: AsyncTeleBot, wish_draft: WishEditorDraft):
     await _open_wish_editor(message.chat.id, message.id, True, bot, wish_draft)
 
 
 async def _open_wish_editor(chat_id: int, message_id: int, send_new_message: bool, bot: AsyncTeleBot,
-                            wish_draft: WishDraft):
+                            wish_draft: WishEditorDraft):
     title = wish_draft.title if len(wish_draft.title) > 0 else "<название отсутствует>"
     hint = wish_draft.hint if len(wish_draft.hint) > 0 else "<описание отсутствует>"
     cost = "{:.2f}".format(wish_draft.cost)

@@ -1,11 +1,11 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot.filters.wish_editor_query_filter import wish_editor_callback_data, wish_editor_new_marker
-from bot.filters.wishlist_editor_filter import wishlist_editor_callback_data
+from bot.filters.wish_viewer_query_filter import wish_viewer_callback_data
+from bot.filters.wishlist_viewer_filter import wishlist_viewer_callback_data
 from wish.wish_manager import WishlistResponse
 
 
-def generate_wishlist_editor_keyboard(wish_response: WishlistResponse, page_idx: int,
+def generate_wishlist_viewer_keyboard(wish_response: WishlistResponse, page_idx: int,
                                       wishes_per_page: int) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup()
 
@@ -19,16 +19,16 @@ def generate_wishlist_editor_keyboard(wish_response: WishlistResponse, page_idx:
         wish_record = wish_response.wishlist[wish_idx]
         keyboard.row(InlineKeyboardButton(
             text=f"{wish_idx + 1}. {wish_record.title}",
-            callback_data=wish_editor_callback_data.new(id=wish_record.wish_id))
+            callback_data=wish_viewer_callback_data.new(id=wish_record.wish_id))
         )
 
-    back_callback = wishlist_editor_callback_data.new(page_idx=last_page_idx if page_idx == first_page_idx else page_idx - 1)
-    next_callback = wishlist_editor_callback_data.new(page_idx=first_page_idx if page_idx == last_page_idx else page_idx + 1)
-    create_wish_callback = wish_editor_callback_data.new(id=wish_editor_new_marker)
+    back_callback = wishlist_viewer_callback_data.new(
+        page_idx=last_page_idx if page_idx == first_page_idx else page_idx - 1)
+    next_callback = wishlist_viewer_callback_data.new(
+        page_idx=first_page_idx if page_idx == last_page_idx else page_idx + 1)
 
     keyboard.row(
         InlineKeyboardButton(text="←", callback_data=back_callback),
-        InlineKeyboardButton(text="+", callback_data=create_wish_callback),
         InlineKeyboardButton(text=f"→", callback_data=next_callback)
     )
 

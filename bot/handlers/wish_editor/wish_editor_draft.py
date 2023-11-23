@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class WishDraft:
+class WishEditorDraft:
     editor_id: int
     title: str
     hint: str

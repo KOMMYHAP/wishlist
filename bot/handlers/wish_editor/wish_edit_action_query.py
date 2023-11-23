@@ -5,7 +5,8 @@ from telebot.asyncio_helper import ApiTelegramException
 from telebot.types import CallbackQuery
 
 from bot.filters.wish_edit_action_filter import wish_edit_action_callback_data
-from bot.handlers.wish_editor.wishlist_get import show_my_wishlist
+from bot.handlers.wish_editor.wishlist_editor import show_my_wishlist_editor
+from bot.handlers.wish_idle_state import wish_idle_state
 from bot.types.wish_edit_states import WishEditStates
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from wish.wish_manager import WishManager
@@ -24,7 +25,7 @@ async def wish_edit_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_ma
     except ApiTelegramException as e:
         logger.warning('Bot exception occurred!', exc_info=e)
 
-    wish_draft = await state.get_wish_draft(call.from_user.id)
+    wish_draft = await state.get_wish_editor_draft(call.from_user.id)
     if wish_draft is None:
         await bot.send_message(call.message.chat.id, 'Извини, но не мог бы ты повторить последнее желание?')
         return
@@ -61,7 +62,7 @@ async def wish_edit_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_ma
 async def _wish_apply(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
                       state: StateBaseAdapter, logger: Logger):
     logger = logger.getChild('wish_apply_editing')
-    wish_draft = await state.get_wish_draft(call.from_user.id)
+    wish_draft = await state.get_wish_editor_draft(call.from_user.id)
     if wish_draft is None:
         logger.error('Wish draft is missing, nothing to apply!')
         return
@@ -69,17 +70,18 @@ async def _wish_apply(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
     if wish_draft.wish_id is None:
         await wish_manager.create_wish(call.from_user.id, wish_draft)
     else:
-        await wish_manager.update_wish(call.from_user.id, wish_draft)
+        await wish_manager.update_wish_by_editor(call.from_user.id, wish_draft)
 
-    await state.delete_wish_draft(call.from_user.id)
+    await bot.set_state(call.from_user.id, wish_idle_state)
+    await state.delete_wish_editor_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here
-    await show_my_wishlist(call.from_user, bot, wish_manager, 0)
+    await show_my_wishlist_editor(call.from_user, bot, wish_manager, 0)
 
 
 async def _wish_abort(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
                       state: StateBaseAdapter) -> None:
-    await bot.delete_state(call.from_user.id)
-    await state.delete_wish_draft(call.from_user.id)
+    await bot.set_state(call.from_user.id, wish_idle_state)
+    await state.delete_wish_editor_draft(call.from_user.id)
     # todo: store open page id when user starts to edit wish and restore it here
-    await show_my_wishlist(call.from_user, bot, wish_manager, 0)
+    await show_my_wishlist_editor(call.from_user, bot, wish_manager, 0)
