@@ -3,7 +3,7 @@ from logging import Logger
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
-from bot.handlers.wish_editor_query import open_wish_editor_in_new_message
+from bot.handlers.wish_editor.wish_editor_query import open_wish_editor_in_new_message
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
 
 

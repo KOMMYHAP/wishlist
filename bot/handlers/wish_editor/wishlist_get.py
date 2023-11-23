@@ -1,19 +1,12 @@
 from telebot.async_telebot import AsyncTeleBot
-from telebot.types import CallbackQuery, User
+from telebot.types import User
 
-from bot.filters.wishlist_filter import wishlist_callback_data
 from bot.keyboards.wishlist_editor_keyboard import generate_wishlist_editor_keyboard
 from wish.wish_manager import WishManager
 
 
-async def wishlist_get(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager) -> None:
-    callback_data: dict = wishlist_callback_data.parse(callback_data=call.data)
-    page_idx = int(callback_data['page_idx'])
-    await show_wishlist(call.from_user, bot, wish_manager, page_idx)
-
-
-async def show_wishlist(user: User, bot: AsyncTeleBot,
-                        wish_manager: WishManager, page_idx: int) -> None:
+async def show_my_wishlist(user: User, bot: AsyncTeleBot,
+                           wish_manager: WishManager, page_idx: int) -> None:
     wishes_per_page = wish_manager.wish_per_page
 
     response = await wish_manager.get_wishlist(user.id, user.username)

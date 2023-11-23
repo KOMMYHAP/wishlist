@@ -5,7 +5,7 @@ from telebot.asyncio_helper import ApiTelegramException
 from telebot.types import CallbackQuery
 
 from bot.filters.wish_edit_action_filter import wish_edit_action_callback_data
-from bot.handlers.wishlist_get import show_wishlist
+from bot.handlers.wish_editor.wishlist_get import show_my_wishlist
 from bot.types.wish_edit_states import WishEditStates
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from wish.wish_manager import WishManager
@@ -74,7 +74,7 @@ async def _wish_apply(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
     await state.delete_wish_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here
-    await show_wishlist(call.from_user, bot, wish_manager, 0)
+    await show_my_wishlist(call.from_user, bot, wish_manager, 0)
 
 
 async def _wish_abort(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
@@ -82,4 +82,4 @@ async def _wish_abort(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
     await bot.delete_state(call.from_user.id)
     await state.delete_wish_draft(call.from_user.id)
     # todo: store open page id when user starts to edit wish and restore it here
-    await show_wishlist(call.from_user, bot, wish_manager, 0)
+    await show_my_wishlist(call.from_user, bot, wish_manager, 0)
