@@ -13,8 +13,11 @@ from bot.types.wish_edit_states import WishEditStates
 def setup_handlers(bot: AsyncTeleBot):
     bot.register_message_handler(start_command_handler, commands=['start'], pass_bot=True)
 
+    # noinspection PyTypeChecker
     bot.register_callback_query_handler(wish_editor_query, None,
                                         wish_editor_query_config=wish_editor_callback_data.filter(), pass_bot=True)
+    
+    # noinspection PyTypeChecker
     bot.register_callback_query_handler(wish_edit_action_query, None,
                                         wish_edit_action_config=wish_edit_action_callback_data.filter(), pass_bot=True)
 
