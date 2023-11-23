@@ -19,10 +19,10 @@ async def wish_edit_reference_handler(message: Message, bot: AsyncTeleBot,
     wish_draft = await state.get_wish_draft(user_id)
     if wish_draft is None:
         logger.error('Wish draft is required but was not created!')
-        await bot.reply_to(message, 'Ой, кажется я сломался')
+        await bot.reply_to(message, 'Я не смог найти это желание, может попробуем с другим?')
         return
 
     wish_draft.references = reference.split('\n')
     await state.update_wish_draft(user_id, wish_draft)
 
-    await open_wish_editor_in_new_message(message, bot, wish_draft, logger)
+    await open_wish_editor_in_new_message(message, bot, wish_draft)

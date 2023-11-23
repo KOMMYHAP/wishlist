@@ -22,7 +22,7 @@ async def wish_editor_query(call: CallbackQuery, bot: AsyncTeleBot,
     wish_draft = await state.get_wish_draft(call.from_user.id)
 
     if wish_draft and wish_draft.editor_id != call.message.id:
-        await bot.send_message(call.message.chat.id, "Оки, давай отредактируем другое желание")
+        await bot.reply_to(call.message, "Оки, давай отредактируем другое желание")
         await state.delete_wish_draft(call.from_user.id)
 
     if should_create_new_wish:
@@ -31,29 +31,25 @@ async def wish_editor_query(call: CallbackQuery, bot: AsyncTeleBot,
         wish = await wish_manager.get_wish(call.from_user.id, wish_id)
         if wish is None:
             logger.error('Trying to query editor for invalid wish id %d', wish_id)
-            await bot.send_message(call.message.chat.id, 'Я не смог найти это желание, может попробуем с другим?')
+            await bot.reply_to(call.message, 'Я не смог найти это желание, может попробуем с другим?')
             return
         wish_draft = WishDraft(call.message.id, wish.title, wish.references, wish.wish_id)
 
     await state.update_wish_draft(call.from_user.id, wish_draft)
 
-    await open_wish_editor_in_last_message(call, bot, wish_draft, logger)
+    await open_wish_editor_in_last_message(call, bot, wish_draft)
 
 
-async def open_wish_editor_in_last_message(call: CallbackQuery, bot: AsyncTeleBot,
-                                           wish_draft: WishDraft, logger: Logger):
-    await _open_wish_editor(call.message.chat.id, call.message.id, call.from_user.id,
-                            False, bot, wish_draft, logger)
+async def open_wish_editor_in_last_message(call: CallbackQuery, bot: AsyncTeleBot, wish_draft: WishDraft):
+    await _open_wish_editor(call.message.chat.id, call.message.id, False, bot, wish_draft)
 
 
-async def open_wish_editor_in_new_message(message: Message, bot: AsyncTeleBot,
-                                          wish_draft: WishDraft, logger: Logger):
-    await _open_wish_editor(message.chat.id, message.id, message.from_user.id, True, bot, wish_draft, logger)
+async def open_wish_editor_in_new_message(message: Message, bot: AsyncTeleBot, wish_draft: WishDraft):
+    await _open_wish_editor(message.chat.id, message.id, True, bot, wish_draft)
 
 
-async def _open_wish_editor(chat_id: int, message_id: int, user_id: int, send_new_message: bool, bot: AsyncTeleBot,
-                            wish_draft: WishDraft,
-                            logger: Logger):
+async def _open_wish_editor(chat_id: int, message_id: int, send_new_message: bool, bot: AsyncTeleBot,
+                            wish_draft: WishDraft):
     title = wish_draft.title if len(wish_draft.title) > 0 else "<нет названия>"
     references = '<нет ссылок>'
     if len(wish_draft.references) == 1:
