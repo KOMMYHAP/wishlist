@@ -13,6 +13,11 @@ from wish.state_adapters.state_storage_adapter import StateStorageAdapter
 from wish.storage_adapters.file_storage_adapter import WishStorageFileAdapter
 from wish.wish_manager import WishManager
 
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.DEBUG
+)
+
 
 async def entry_point() -> None:
     parser = argparse.ArgumentParser("WishList telegram bot")

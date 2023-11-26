@@ -5,7 +5,7 @@ from bot.filters.wishlist_viewer_filter import wishlist_viewer_callback_data
 from wish.wish_manager import WishlistResponse
 
 
-def generate_wishlist_viewer_keyboard(wish_response: WishlistResponse, page_idx: int,
+def generate_wishlist_viewer_keyboard(wish_response: WishlistResponse, target_user_id: int, page_idx: int,
                                       wishes_per_page: int) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup()
 
@@ -23,9 +23,12 @@ def generate_wishlist_viewer_keyboard(wish_response: WishlistResponse, page_idx:
         )
 
     back_callback = wishlist_viewer_callback_data.new(
-        page_idx=last_page_idx if page_idx == first_page_idx else page_idx - 1)
+        page_idx=(last_page_idx if page_idx == first_page_idx else page_idx - 1),
+        target_user_id=target_user_id)
+
     next_callback = wishlist_viewer_callback_data.new(
-        page_idx=first_page_idx if page_idx == last_page_idx else page_idx + 1)
+        page_idx=(first_page_idx if page_idx == last_page_idx else page_idx + 1),
+        target_user_id=target_user_id)
 
     keyboard.row(
         InlineKeyboardButton(text="←", callback_data=back_callback),

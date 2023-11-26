@@ -2,7 +2,7 @@ from telebot.asyncio_filters import AdvancedCustomFilter
 from telebot.callback_data import CallbackData, CallbackDataFilter
 from telebot.types import CallbackQuery
 
-wishlist_viewer_callback_data = CallbackData("page_idx", prefix="wishlist_viewer")
+wishlist_viewer_callback_data = CallbackData("page_idx", "target_user_id", prefix="wishlist_viewer")
 
 
 class WishlistViewerCallbackFilter(AdvancedCustomFilter):

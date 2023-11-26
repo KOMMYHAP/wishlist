@@ -2,7 +2,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import BotCommand, Message
 
 from bot.handlers.command_registry import WishlistCommands, get_command_description
-from bot.handlers.wish_editor.wishlist_editor import show_my_wishlist_editor
+from bot.handlers.wish_editor.wishlist_editor import send_my_wishlist_editor
 from wish.types.user import User
 from wish.wish_manager import WishManager
 
@@ -33,4 +33,4 @@ async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manage
 """
         await bot.send_message(message.chat.id, hello_world_message)
 
-    await show_my_wishlist_editor(message.from_user, bot, wish_manager, 0)
+    await send_my_wishlist_editor(message.from_user, bot, wish_manager, 0)

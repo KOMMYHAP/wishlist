@@ -9,7 +9,7 @@ from wish.wish_manager import WishManager
 
 async def show_wishlist_viewer(bot: AsyncTeleBot, message: Message, target_user_id: int, wish_manager: WishManager,
                                logger: Logger, page_idx: int) -> None:
-    logger = logger.getChild('show_wishlist_viewer')
+    # logger = logger.getChild('show_wishlist_viewer')
     wishes_per_page = wish_manager.wish_per_page
 
     target_username = await wish_manager.find_username(target_user_id)
@@ -33,4 +33,5 @@ async def show_wishlist_viewer(bot: AsyncTeleBot, message: Message, target_user_
 
     await bot.send_message(chat_id=message.chat.id,
                            text=text,
-                           reply_markup=generate_wishlist_viewer_keyboard(response, page_idx, wishes_per_page))
+                           reply_markup=generate_wishlist_viewer_keyboard(response, target_user_id, page_idx,
+                                                                          wishes_per_page))

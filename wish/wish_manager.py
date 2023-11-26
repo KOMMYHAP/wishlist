@@ -34,6 +34,13 @@ class WishManager:
             return None
         return user.name
 
+    async def find_user_id(self, user_name: str) -> int | None:
+        self._log.debug('find_user_id(%s)', user_name)
+        user = await self._storage.get_user_by_name(user_name)
+        if user is None:
+            return None
+        return user.id
+
     async def get_wish(self, wish_id: int) -> WishRecord | None:
         self._log.debug('get_wish(%d)', wish_id)
         return await self._storage.get_wish(wish_id)

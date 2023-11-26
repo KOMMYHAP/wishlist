@@ -9,9 +9,6 @@ def generate_wishlist_editor_keyboard(wish_response: WishlistResponse, page_idx:
                                       wishes_per_page: int) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup()
 
-    first_page_idx = 0
-    last_page_idx = (len(wish_response.wishlist) + wishes_per_page - 1) // wishes_per_page
-
     for wish_idx in range(page_idx * wishes_per_page, (page_idx + 1) * wishes_per_page):
         if wish_idx >= len(wish_response.wishlist):
             break
@@ -22,8 +19,18 @@ def generate_wishlist_editor_keyboard(wish_response: WishlistResponse, page_idx:
             callback_data=wish_editor_callback_data.new(id=wish_record.wish_id))
         )
 
-    back_callback = wishlist_editor_callback_data.new(page_idx=last_page_idx if page_idx == first_page_idx else page_idx - 1)
-    next_callback = wishlist_editor_callback_data.new(page_idx=first_page_idx if page_idx == last_page_idx else page_idx + 1)
+    last_page_idx = max(len(wish_response.wishlist) - 1, 0) // wishes_per_page
+
+    back_page_idx = page_idx - 1
+    if back_page_idx < 0:
+        back_page_idx = last_page_idx
+
+    next_page_idx = page_idx + 1
+    if next_page_idx > last_page_idx:
+        next_page_idx = 0
+
+    back_callback = wishlist_editor_callback_data.new(page_idx=back_page_idx)
+    next_callback = wishlist_editor_callback_data.new(page_idx=next_page_idx)
     create_wish_callback = wish_editor_callback_data.new(id=wish_editor_new_marker)
 
     keyboard.row(
