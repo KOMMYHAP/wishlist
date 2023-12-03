@@ -6,4 +6,4 @@ from wish.wish_manager import WishManager
 
 
 async def command_my_wishlist_handler(message: Message, bot: AsyncTeleBot, wish_manager: WishManager) -> None:
-    await send_my_wishlist_editor(message.from_user, bot, wish_manager, 0)
+    await send_my_wishlist_editor(message, bot, wish_manager, 0)
