@@ -25,7 +25,7 @@ async def edit_my_wishlist_editor(bot: AsyncTeleBot, call: CallbackQuery, logger
     if request is None:
         await bot.send_message(call.message.chat.id, 'Что-то пошло не так, не мог бы ты попробовать снова?')
         return
-    await bot.edit_message_text(request.text, call.message.id, reply_markup=request.reply_markup)
+    await bot.edit_message_text(request.text, call.message.chat.id, call.message.id, reply_markup=request.reply_markup)
 
 
 def _my_wishlist_page_navigation_factory(page_idx: int) -> CallbackData:

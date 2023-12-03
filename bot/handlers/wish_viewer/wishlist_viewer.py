@@ -27,7 +27,7 @@ async def edit_user_wishlist_editor(bot: AsyncTeleBot, logger: Logger, call: Cal
     if request is None:
         await bot.send_message(call.message.chat.id, 'Что-то пошло не так, не мог бы ты попробовать снова?')
         return
-    await bot.edit_message_text(request.text, call.message.id, reply_markup=request.reply_markup)
+    await bot.edit_message_text(request.text, call.message.chat.id, call.message.id, reply_markup=request.reply_markup)
 
 
 async def _make_editor_config(logger: Logger, wish_manager: WishManager, sender_id: int, target_id: int,
