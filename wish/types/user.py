@@ -5,6 +5,6 @@ from dataclasses import dataclass
 class User:
     id: int
     username: str
-    first_name: str | None
-    last_name: str | None
-    chat_id: int | None
+    first_name: str
+    last_name: str
+    chat_id: int

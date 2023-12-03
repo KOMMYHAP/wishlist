@@ -66,9 +66,9 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
             return User(
                 user_data['user_id'],
                 user_data['user_name'],
-                user_data.get('first_name'),
-                user_data.get('last_name'),
-                user_data.get('chat_id'),
+                user_data.get('first_name', ''),
+                user_data.get('last_name', ''),
+                user_data.get('chat_id', 0),
             )
         except KeyError as e:
             self._log.exception('user data %s', json.dumps(user_data, indent='  '), exc_info=e)

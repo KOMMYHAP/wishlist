@@ -143,3 +143,17 @@ class WishManager:
             return False
         self._log.debug('register_user(%s) -> new user created', str(user))
         return True
+
+    async def update_user(self, user: User) -> bool:
+        old_user = await self._storage.find_user_by_id(user.id)
+        if old_user is None:
+            self._log.debug('update_user(%s) -> user not found', str(user))
+            return False
+
+        updated = await self._storage.update_user(user)
+        if not updated:
+            self._log.error('update_user(%s) -> failed to update user', str(user))
+            return False
+
+        self._log.debug('update_user(%s) -> user created', str(user))
+        return True
