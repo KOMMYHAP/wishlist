@@ -5,6 +5,7 @@ from telebot.asyncio_helper import ApiTelegramException
 from telebot.types import CallbackQuery
 
 from bot.filters.wish_edit_action_filter import wish_edit_action_callback_data
+from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
 from bot.handlers.wish_editor.wishlist_editor import edit_my_wishlist_editor
 from bot.handlers.wish_idle_state import wish_idle_state
 from bot.types.wish_edit_states import WishEditStates
@@ -68,6 +69,12 @@ async def _wish_apply(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
         logger.error('Wish draft is missing, nothing to apply!')
         return
 
+    validation_error = await _wish_validate(wish_draft)
+    if validation_error is not None:
+        await bot.set_state(call.from_user.id, wish_idle_state)
+        await bot.send_message(call.message.chat.id, validation_error)
+        return
+
     if wish_draft.wish_id is None:
         await wish_manager.create_wish(call.from_user.id, wish_draft)
     else:
@@ -87,3 +94,9 @@ async def _wish_abort(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
     await state.delete_wish_editor_draft(call.from_user.id)
     # todo: store open page id when user starts to edit wish and restore it here
     await edit_my_wishlist_editor(bot, call, logger, wish_manager, 0)
+
+
+async def _wish_validate(wish_draft: WishEditorDraft) -> str | None:
+    if len(wish_draft.title.strip()) == 0:
+        return 'Пожалуйста, укажи другое название'
+    return None

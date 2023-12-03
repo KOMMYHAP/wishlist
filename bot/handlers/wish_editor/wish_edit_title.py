@@ -13,7 +13,7 @@ async def wish_edit_title_handler(message: Message, bot: AsyncTeleBot, state: St
     logger = logger.getChild('wish_edit_title')
     title = message.text.strip()
     if len(title) == 0:
-        await bot.reply_to(message, 'Название должно содержать хотя бы один видимый символ!')
+        await bot.reply_to(message, 'Название должно содержать хотя бы один символ!')
         return
 
     user_id = message.from_user.id
