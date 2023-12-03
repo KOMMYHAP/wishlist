@@ -47,6 +47,7 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         user_data = self.users.get(user.id)
         if user_data is None:
             return False
+        user_data['version'] = user.version
         user_data['user_id'] = user.id
         user_data['user_name'] = user.username
         user_data['first_name'] = user.first_name
@@ -64,6 +65,7 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
     def _get_user(self, user_data: dict) -> User | None:
         try:
             return User(
+                user_data.get('version', 0),
                 user_data['user_id'],
                 user_data['user_name'],
                 user_data.get('first_name', ''),

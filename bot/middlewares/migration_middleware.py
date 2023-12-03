@@ -41,12 +41,13 @@ class MigrationMiddleware(BaseMiddleware):
             # nothing to migrate
             return True
 
-        if wishlist_user.first_name is None:
+        if wishlist_user.version == 0:
+            wishlist_user.version = 1
             wishlist_user.first_name = user.first_name
             wishlist_user.last_name = user.last_name
             wishlist_user.chat_id = chat_id
-            updated = await self._wish_manager.update_user(user)
+            updated = await self._wish_manager.update_user(wishlist_user)
             if not updated:
-                self._logger.error('Failed to migrate user %s (id %d) to v2!', user.username, user.id)
+                self._logger.error('Failed to migrate user %s (id %d) to v1!', user.username, user.id)
                 return False
         return True

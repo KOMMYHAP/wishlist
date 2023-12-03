@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 @dataclass
 class User:
+    version: int
     id: int
     username: str
     first_name: str
