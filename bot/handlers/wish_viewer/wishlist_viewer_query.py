@@ -15,4 +15,4 @@ async def wishlist_viewer_query(call: CallbackQuery, bot: AsyncTeleBot, wish_man
     page_idx = int(callback_data['page_idx'])
     target_user_id = int(callback_data['target_user_id'])
     await bot.answer_callback_query(call.id)
-    await edit_user_wishlist_editor(bot, logger, call.message, target_user_id, wish_manager, page_idx)
+    await edit_user_wishlist_editor(bot, logger, call, target_user_id, wish_manager, page_idx)

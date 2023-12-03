@@ -2,7 +2,7 @@ from logging import Logger
 
 from telebot.async_telebot import AsyncTeleBot
 from telebot.callback_data import CallbackData
-from telebot.types import Message
+from telebot.types import Message, CallbackQuery
 
 from bot.filters.wish_editor_query_filter import wish_editor_callback_data, wish_editor_new_marker
 from bot.filters.wishlist_editor_filter import wishlist_editor_callback_data
@@ -19,13 +19,13 @@ async def send_my_wishlist_editor(logger: Logger, message: Message, bot: AsyncTe
     await bot.send_message(message.chat.id, request.text, reply_markup=request.reply_markup)
 
 
-async def edit_my_wishlist_editor(logger: Logger, message: Message, bot: AsyncTeleBot, wish_manager: WishManager,
-                                  page_idx: int) -> None:
-    request = await _make_editor_config(logger, wish_manager, message.from_user.id, page_idx)
+async def edit_my_wishlist_editor(bot: AsyncTeleBot, call: CallbackQuery, logger: Logger,
+                                  wish_manager: WishManager, page_idx: int) -> None:
+    request = await _make_editor_config(logger, wish_manager, call.from_user.id, page_idx)
     if request is None:
-        await bot.reply_to(message, 'Что-то пошло не так, не мог бы ты попробовать снова?')
+        await bot.send_message(call.message.chat.id, 'Что-то пошло не так, не мог бы ты попробовать снова?')
         return
-    await bot.edit_message_text(request.text, message.id, reply_markup=request.reply_markup)
+    await bot.edit_message_text(request.text, call.message.id, reply_markup=request.reply_markup)
 
 
 def _my_wishlist_page_navigation_factory(page_idx: int) -> CallbackData:

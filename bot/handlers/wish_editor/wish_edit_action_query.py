@@ -76,7 +76,7 @@ async def _wish_apply(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
     await state.delete_wish_editor_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here
-    await edit_my_wishlist_editor(logger, call.message, bot, wish_manager, 0)
+    await edit_my_wishlist_editor(bot, call, logger, wish_manager, 0)
 
 
 async def _wish_abort(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
@@ -85,4 +85,4 @@ async def _wish_abort(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
     await bot.set_state(call.from_user.id, wish_idle_state)
     await state.delete_wish_editor_draft(call.from_user.id)
     # todo: store open page id when user starts to edit wish and restore it here
-    await edit_my_wishlist_editor(logger, call.message, bot, wish_manager, 0)
+    await edit_my_wishlist_editor(bot, call, logger, wish_manager, 0)

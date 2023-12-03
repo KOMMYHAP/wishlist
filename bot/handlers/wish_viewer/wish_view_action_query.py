@@ -55,7 +55,7 @@ async def _wish_viewer_reserve(call: CallbackQuery, bot: AsyncTeleBot, wish_mana
     await state.delete_wish_viewer_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here
-    await edit_user_wishlist_editor(bot, logger, call.message, wish_owner_id, wish_manager, 0)
+    await edit_user_wishlist_editor(bot, logger, call, wish_owner_id, wish_manager, 0)
 
 
 async def _wish_viewer_back(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
@@ -65,4 +65,4 @@ async def _wish_viewer_back(call: CallbackQuery, bot: AsyncTeleBot, wish_manager
     await state.delete_wish_viewer_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here
-    await edit_user_wishlist_editor(bot, logger, call.message, wish_owner_id, wish_manager, 0)
+    await edit_user_wishlist_editor(bot, logger, call, wish_owner_id, wish_manager, 0)

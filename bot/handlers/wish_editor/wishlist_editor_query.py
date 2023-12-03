@@ -14,4 +14,4 @@ async def wishlist_editor_query(call: CallbackQuery, bot: AsyncTeleBot, wish_man
     callback_data: dict = wishlist_editor_callback_data.parse(callback_data=call.data)
     page_idx = int(callback_data['page_idx'])
     await bot.answer_callback_query(call.id)
-    await edit_my_wishlist_editor(logger, call.message, bot, wish_manager, page_idx)
+    await edit_my_wishlist_editor(bot, call, logger, wish_manager, page_idx)
