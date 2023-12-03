@@ -27,7 +27,7 @@ async def wish_editor_query(call: CallbackQuery, bot: AsyncTeleBot,
         await state.delete_wish_editor_draft(call.from_user.id)
 
     if should_create_new_wish:
-        wish_draft = WishEditorDraft(call.message.id, '', '', 0.0, None)
+        wish_draft = WishEditorDraft(call.message.id, '', '', '', None)
     else:
         wish = await wish_manager.get_wish(wish_id)
         if wish is None:
@@ -71,8 +71,8 @@ async def _open_wish_editor(wish_draft: WishEditorDraft, wish_manager: WishManag
         text += f"\nНазвание: {wish_draft.title}"
     if len(wish_draft.hint) > 0:
         text += f"\nОписание: {wish_draft.hint}"
-    if wish_draft.cost > 0:
-        text += "\nСтоимость: {:.2f}".format(wish_draft.cost)
+    if len(wish_draft.cost) > 0:
+        text += f"\nСтоимость: {wish_draft.cost}"
     if len(text) == 0:
         text = "Создай новое желание:"
 

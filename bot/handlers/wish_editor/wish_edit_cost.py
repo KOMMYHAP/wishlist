@@ -13,14 +13,8 @@ async def wish_edit_cost_handler(message: Message, bot: AsyncTeleBot, state: Sta
     logger = logger.getChild('wish_edit_cost')
     cost_message = message.text.strip()
 
-    try:
-        cost = float(cost_message)
-    except ValueError:
-        await bot.reply_to(message, 'Я не смог понять стоимость подарка, не мог бы ты попробовать еще разок?')
-        return
-
-    if not cost.is_integer():
-        await bot.reply_to(message, 'Не похоже на настоящую стоимость...')
+    if len(cost_message) == 0:
+        await bot.reply_to(message, 'Попробуй ввести другую стоимость')
         return
 
     user_id = message.from_user.id
@@ -30,6 +24,6 @@ async def wish_edit_cost_handler(message: Message, bot: AsyncTeleBot, state: Sta
         await bot.reply_to(message, 'Я не смог найти это желание, может попробуем с другим?')
         return
 
-    wish_draft.cost = cost
+    wish_draft.cost = cost_message
     await state.update_wish_editor_draft(user_id, wish_draft)
     await open_wish_editor_in_new_message(bot, message, logger, wish_manager, wish_draft)

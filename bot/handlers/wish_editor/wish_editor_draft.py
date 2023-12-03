@@ -6,5 +6,5 @@ class WishEditorDraft:
     editor_id: int
     title: str
     hint: str
-    cost: float
+    cost: str
     wish_id: int | None

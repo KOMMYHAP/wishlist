@@ -104,8 +104,8 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
             return WishRecord(
                 wish_data['wish_id'],
                 wish_data['owner_id'],
-                str(wish_data['title']),
-                str(wish_data['hint']),
+                wish_data['title'],
+                wish_data['hint'],
                 wish_data['cost'],
                 wish_data['reserved_by_user_id'],
                 wish_data['performed']

@@ -45,8 +45,8 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
         text += f"\nНазвание: {wish.title}"
     if len(wish.hint) > 0:
         text += f"\nОписание: {wish.hint}"
-    if wish.cost > 0:
-        text += "\nСтоимость: {:.2f}".format(wish.cost)
+    if len(wish.cost) > 0:
+        text += f"\nСтоимость: {wish.cost}"
     if wish.reserved_by_user_id is not None:
         reserved_by_user = await wish_manager.find_user_by_id(wish.reserved_by_user_id)
         if observer_id != wish.owner_id or wish_manager.config.allow_wish_owner_sees_reservation:

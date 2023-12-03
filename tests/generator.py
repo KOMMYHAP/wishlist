@@ -16,7 +16,7 @@ async def generate_wishes(wish_manager: WishManager, owner_id: int, count: int):
             0,
             f"autogen wish {wish_start_idx + wish_idx + 1}",
             f"autogen desc",
-            0.0,
+            f"autogen cost",
             None)
         await wish_manager.create_wish(owner_id, draft)
 

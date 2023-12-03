@@ -82,6 +82,8 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
                 root_data = json.load(f)
                 self._memory_storage.wishes = {}
                 for key, value in root_data['wishes'].items():
+                    if 'cost' in value and isinstance(value['cost'], float):
+                        value['cost'] = str(value['cost']) if value['cost'] > 0.0 else ''
                     self._memory_storage.wishes[int(key)] = value
                 for key, value in root_data['users'].items():
                     self._memory_storage.users[int(key)] = value

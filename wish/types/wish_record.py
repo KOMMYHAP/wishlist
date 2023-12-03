@@ -7,6 +7,6 @@ class WishRecord:
     owner_id: int  # same as User.id
     title: str
     hint: str
-    cost: float
+    cost: str
     reserved_by_user_id: int | None  # same as User.id
     performed: bool  # wish was performed by owner
