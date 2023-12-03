@@ -5,9 +5,11 @@ from telebot.types import Message
 
 from bot.handlers.wish_editor.wish_editor_query import open_wish_editor_in_new_message
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
+from wish.wish_manager import WishManager
 
 
-async def wish_edit_title_handler(message: Message, bot: AsyncTeleBot, state: StateBaseAdapter, logger: Logger) -> None:
+async def wish_edit_title_handler(message: Message, bot: AsyncTeleBot, state: StateBaseAdapter, logger: Logger,
+                                  wish_manager: WishManager) -> None:
     logger = logger.getChild('wish_edit_title')
     title = message.text.strip()
     if len(title) == 0:
@@ -23,4 +25,5 @@ async def wish_edit_title_handler(message: Message, bot: AsyncTeleBot, state: St
 
     wish_draft.title = title
     await state.update_wish_editor_draft(user_id, wish_draft)
-    await open_wish_editor_in_new_message(message, bot, wish_draft)
+
+    await open_wish_editor_in_new_message(bot, message, logger, wish_manager, wish_draft)

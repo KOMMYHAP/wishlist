@@ -4,9 +4,10 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import CallbackQuery, Message
 
 from bot.filters.wish_editor_query_filter import wish_editor_callback_data
-from bot.keyboards.wish_edit_keyboard import make_wish_edit_keyboard
-from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
+from bot.keyboards.wish_edit_keyboard import make_wish_edit_keyboard
+from bot.types.MessageArgs import MessageArgs
+from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from wish.wish_manager import WishManager
 
 
@@ -37,30 +38,39 @@ async def wish_editor_query(call: CallbackQuery, bot: AsyncTeleBot,
 
     await state.update_wish_editor_draft(call.from_user.id, wish_draft)
 
-    await open_wish_editor_in_last_message(call, bot, wish_draft)
+    await open_wish_editor_in_last_message(bot, call, logger, wish_manager, wish_draft)
 
 
-async def open_wish_editor_in_last_message(call: CallbackQuery, bot: AsyncTeleBot, wish_draft: WishEditorDraft):
-    await _open_wish_editor(call.message.chat.id, call.message.id, False, bot, wish_draft)
+async def open_wish_editor_in_last_message(bot: AsyncTeleBot, call: CallbackQuery, logger: Logger,
+                                           wish_manager: WishManager, wish_draft: WishEditorDraft):
+    args = await _open_wish_editor(wish_draft, wish_manager, call.from_user.id, logger)
+    if args is None:
+        await bot.send_message(call.message.chat.id, 'Что-то пошло не так, не мог бы ты попробовать снова?')
+        return
+    await bot.edit_message_text(args.text, call.message.chat.id, call.message.id, reply_markup=args.markup)
 
 
-async def open_wish_editor_in_new_message(message: Message, bot: AsyncTeleBot, wish_draft: WishEditorDraft):
-    await _open_wish_editor(message.chat.id, message.id, True, bot, wish_draft)
+async def open_wish_editor_in_new_message(bot: AsyncTeleBot, message: Message, logger: Logger,
+                                          wish_manager: WishManager, wish_draft: WishEditorDraft):
+    args = await _open_wish_editor(wish_draft, wish_manager, message.from_user.id, logger)
+    if args is None:
+        await bot.reply_to(message, 'Что-то пошло не так, не мог бы ты попробовать снова?')
+        return
+    await bot.send_message(message.chat.id, args.text, reply_markup=args.markup)
 
 
-async def _open_wish_editor(chat_id: int, message_id: int, send_new_message: bool, bot: AsyncTeleBot,
-                            wish_draft: WishEditorDraft):
-    title = wish_draft.title if len(wish_draft.title) > 0 else "<название отсутствует>"
-    hint = wish_draft.hint if len(wish_draft.hint) > 0 else "<описание отсутствует>"
-    cost = "{:.2f}".format(wish_draft.cost)
-    text = f"""Редактор желания:
-Название: {title}
-Стоимость: {cost}
-Описание: {hint}
-"""
+async def _open_wish_editor(wish_draft: WishEditorDraft, wish_manager: WishManager,
+                            owner_user_id: int, logger: Logger) -> MessageArgs | None:
+    owner_user = await wish_manager.find_user_by_id(owner_user_id)
+    if owner_user is None:
+        logger.error("Cannot find user by id '%d'", owner_user_id)
+        return None
+    text = f"Желание пользователя @{owner_user.username}"
+    if len(wish_draft.title) > 0:
+        text += f"\nНазвание: {wish_draft.title}"
+    if len(wish_draft.hint) > 0:
+        text += f"\nОписание: {wish_draft.hint}"
+    if wish_draft.cost > 0:
+        text += "\nСтоимость: {:.2f}".format(wish_draft.cost)
 
-    if send_new_message:
-        await bot.send_message(chat_id, text, reply_markup=make_wish_edit_keyboard(wish_draft.editor_id))
-    else:
-        await bot.edit_message_text(text, chat_id, message_id,
-                                    reply_markup=make_wish_edit_keyboard(wish_draft.editor_id))
+    return MessageArgs(text, make_wish_edit_keyboard(wish_draft.editor_id))
