@@ -11,11 +11,13 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
     users: dict[int, dict]
     wishes: dict[int, dict]
     friends: dict[int, list[int]]
+    next_wish_id: int
 
     def __init__(self):
         self.users = {}
         self.wishes = {}
         self.friends = {}
+        self.next_wish_id = 0
         self._log = logging.getLogger('in-memory storage_adapters')
 
     async def find_user_by_name(self, username: str) -> User | None:
@@ -87,7 +89,8 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         return wishlist
 
     async def create_wish(self, wish: WishRecord) -> bool:
-        wish.wish_id = len(self.wishes) + 1
+        wish.wish_id = self.next_wish_id
+        self.next_wish_id += 1
         wish_data = self.wishes.get(wish.wish_id)
         if wish_data is not None:
             return False

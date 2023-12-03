@@ -5,3 +5,4 @@ from dataclasses import dataclass
 class WishlistConfig:
     wishes_per_page: int
     can_wish_owner_see_reservation: bool
+    initial_wish_id: int

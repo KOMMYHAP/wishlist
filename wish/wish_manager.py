@@ -114,21 +114,22 @@ class WishManager:
             response.reservation_map[wish.wish_id] = reserved_by_user
         return response
 
-    async def remove_wish(self, user_id: int, wish_idx: int) -> bool:
-        self._log.debug('remove_wish(%d, %d)', user_id, wish_idx)
+    async def remove_wish(self, user_id: int, wish_id: int) -> bool:
+        self._log.debug('remove_wish(%d, %d)', user_id, wish_id)
 
         wishlist = await self._storage.get_wishlist(user_id)
-        if not (0 <= wish_idx < len(wishlist)):
-            self._log.debug(f'remove_wish(%d, %d) -> wish idx must be in range [%d; %d)', user_id, wish_idx, 0,
-                            len(wishlist))
-            return False
+        found_wish: WishRecord | None = None
+        for wish in wishlist:
+            if wish.wish_id == wish_id:
+                found_wish = wish
+                break
 
-        wish = wishlist[wish_idx]
-        removed = await self._storage.remove_wish(user_id, wish_idx)
+        removed = await self._storage.remove_wish(user_id, wish_id)
         if removed:
-            self._log.debug(f'remove_wish(%d, %d) -> wish %d removed', user_id, wish_idx, wish.wish_id)
+            self._log.debug(f'remove_wish(%d, %d) -> found_wish %d removed', user_id, wish_id, found_wish.wish_id)
         else:
-            self._log.error(f'remove_wish(%d, %d) -> failed to remove wish %d', user_id, wish_idx, wish.wish_id)
+            self._log.error(f'remove_wish(%d, %d) -> failed to remove found_wish %d', user_id, wish_id,
+                            found_wish.wish_id)
         return removed
 
     async def register_user(self, user: User) -> bool:

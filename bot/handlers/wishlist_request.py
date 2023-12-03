@@ -25,12 +25,6 @@ class WishlistRequestConfig:
     wish_factory: WishCallbackDataFactory
 
 
-@dataclass
-class WishlistRequest:
-    text: str
-    reply_markup: InlineKeyboardMarkup
-
-
 async def make_wishlist_request(config: WishlistRequestConfig, wish_manager: WishManager) -> MessageArgs | None:
     wishes_per_page = wish_manager.config.wishes_per_page
     response = await wish_manager.get_wishlist(config.sender.id, config.target.id)
@@ -53,7 +47,7 @@ def _make_wishlist_title(config: WishlistRequestConfig, wishlist: list[WishRecor
         if empty_wishlist:
             text += "\nНажми '+', чтобы добавить желание."
 
-    pages_count = len(wishlist) // wishes_per_page
+    pages_count = (len(wishlist) + wishes_per_page - 1) // wishes_per_page
     if pages_count > 1:
         text += f" (стр. {config.current_page_idx + 1}/{pages_count})"
 

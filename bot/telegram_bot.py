@@ -26,17 +26,19 @@ async def entry_point() -> None:
     parser.add_argument('-f', '--storage-file', required=True)
     parser.add_argument('--wishes-per-page', type=int, default=5, required=False)
     parser.add_argument('--allow-wish-owner-see-reservation', type=bool, default=False, required=False)
+    parser.add_argument('--initial-wish-id', type=int, default=1000, required=False)
     args = parser.parse_args()
+
+    wishlist_config = WishlistConfig(
+        args.wishes_per_page,
+        args.allow_wish_owner_see_reservation,
+        args.initial_wish_id
+    )
 
     root_logger = logging.getLogger()
     state_storage = StateMemoryStorage()
     state_adapter = StateStorageAdapter(state_storage, root_logger)
-    wish_storage = WishStorageFileAdapter(args.storage_file)
-
-    wishlist_config = WishlistConfig(
-        args.wishes_per_page,
-        args.allow_wish_owner_see_reservation
-    )
+    wish_storage = WishStorageFileAdapter(args.storage_file, wishlist_config.initial_wish_id)
     wish_manager = WishManager(wish_storage, root_logger, wishlist_config)
 
     bot = AsyncTeleBot(args.token, exception_handler=DebugExceptionHandler(), state_storage=state_storage)

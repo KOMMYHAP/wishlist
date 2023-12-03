@@ -39,6 +39,7 @@ async def wish_edit_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_ma
         WishEditStates.COST.value: 'Укажи примерную стоимость',
         WishEditStates.TITLE.value: 'Укажи название',
         WishEditStates.HINT.value: 'Добавь комментарий к подарку, чтобы помочь с выбором. Например, можно указать цвет или производителя, а еще удобнее сразу ссылку на маркетплейс!',
+        WishEditStates.DELETE.value: 'Введи название, чтобы подтвердить удаление',
         WishEditStates.COMPLETION.value: '',
         WishEditStates.ABORT.value: '',
     }

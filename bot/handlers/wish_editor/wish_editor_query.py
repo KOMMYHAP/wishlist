@@ -73,4 +73,4 @@ async def _open_wish_editor(wish_draft: WishEditorDraft, wish_manager: WishManag
     if wish_draft.cost > 0:
         text += "\nСтоимость: {:.2f}".format(wish_draft.cost)
 
-    return MessageArgs(text, make_wish_edit_keyboard(wish_draft.editor_id))
+    return MessageArgs(text, make_wish_edit_keyboard(wish_draft))

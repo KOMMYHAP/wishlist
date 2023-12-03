@@ -9,10 +9,11 @@ from wish.types.wish_record import WishRecord
 
 
 class WishStorageFileAdapter(WishStorageBaseAdapter):
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, initial_wish_id: int):
         self._logger = logging.getLogger('file storage_adapters')
         self._memory_storage = WishStorageMemoryAdapter()
         self._filename = filename
+        self._initial_wish_id = initial_wish_id
 
         self._load_from_file()
 
@@ -87,6 +88,7 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
                 if root_data.get('friends') is not None:
                     for key, value in root_data['friends'].items():
                         self._memory_storage.users[int(key)] = value
+                self._memory_storage.next_wish_id = root_data.get('next_wish_id', self._initial_wish_id)
         except FileNotFoundError:
             self._logger.debug('File %s was not found', self._filename)
         except OSError as io_error:
@@ -99,6 +101,7 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
                     'users': self._memory_storage.users,
                     'wishes': self._memory_storage.wishes,
                     'friends': self._memory_storage.friends,
+                    'next_wish_id': self._memory_storage.next_wish_id
                 }
                 json.dump(root_data, f, indent='   ')
         except OSError as io_error:
