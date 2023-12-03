@@ -4,6 +4,7 @@ from logging import Logger
 from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
 from bot.handlers.wish_viewer.wish_viewer_draft import WishViewerDraft
 from wish.storage_adapters.base_storage_adapter import WishStorageBaseAdapter
+from wish.types.friend_record import FriendRecord
 from wish.types.user import User
 from wish.types.wish_record import WishRecord
 from wish.wishlist_config import WishlistConfig
@@ -158,3 +159,12 @@ class WishManager:
 
         self._log.debug('update_user(%s) -> user created', str(user))
         return True
+
+    async def get_friend_list(self, user_id: int) -> list[FriendRecord]:
+        self._log.debug('get_friend_list(%s)', str(user_id))
+        return await self._storage.get_friend_list(user_id)
+
+    async def update_friend_list(self, user_id: int, friends: list[FriendRecord]) -> bool:
+        updated = await self._storage.update_friend_list(user_id, friends)
+        self._log.debug('update_friend_list(%s, %s) -> %s', str(user_id), str(friends), str(updated))
+        return updated

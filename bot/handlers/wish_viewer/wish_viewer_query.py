@@ -7,6 +7,7 @@ from bot.filters.wish_view_action_filter import wish_view_action_callback_data
 from bot.filters.wish_viewer_query_filter import wish_viewer_callback_data
 from bot.handlers.wish_viewer.wish_viewer_draft import WishViewerDraft
 from bot.handlers.wish_viewer.wish_viewer_states import WishViewerStates
+from bot.utilities.user_fullname import get_user_fullname
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from wish.types.wish_record import WishRecord
 from wish.wish_manager import WishManager
@@ -39,7 +40,7 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
 
     owner_user = await wish_manager.find_user_by_id(wish.owner_id)
 
-    text = f"Желание пользователя @{owner_user.username}"
+    text = f"{get_user_fullname(owner_user)} желает:"
     if len(wish.title) > 0:
         text += f"\nНазвание: {wish.title}"
     if len(wish.hint) > 0:
@@ -48,12 +49,8 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
         text += "\nСтоимость: {:.2f}".format(wish.cost)
     if wish.reserved_by_user_id is not None:
         reserved_by_user = await wish_manager.find_user_by_id(wish.reserved_by_user_id)
-        if reserved_by_user is None:
-            logger.error("Wish reserved by unknown user %d", wish.reserved_by_user_id)
-        reserved_by_username = reserved_by_user.username if reserved_by_user else f'{wish.reserved_by_user_id}'
-
         if observer_id != wish.owner_id or wish_manager.config.can_wish_owner_see_reservation:
-            text += f"\nХочет подарить: @{reserved_by_username}"
+            text += f"\nХочет подарить: {get_user_fullname(reserved_by_user)}"
         else:
             text += f"\nКое-кто уже планирует подарить тебе этот подарок!"
 
