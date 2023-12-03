@@ -11,7 +11,9 @@ from wish.wish_manager import WishManager
 
 async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manager: WishManager, logger: Logger) -> None:
     logger = logger.getChild('start_command')
-    user = User(message.from_user.id, message.from_user.username)
+    message_sender = message.from_user
+    user = User(message_sender.id, message_sender.username, message_sender.first_name,
+                message_sender.last_name, message.chat.id)
 
     bot_commands: list[BotCommand] = []
     for wishlist_command in WishlistCommands:
@@ -21,7 +23,7 @@ async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manage
 
     new_user_created = await wish_manager.register_user(user)
     if new_user_created:
-        hello_world_message = f"""Привет, {user.username}!
+        hello_world_message = f"""Привет, {user.first_name} {user.last_name}!
 
 Если тебя пригласили на день рождения и ты хочешь подарить именинику что-то действительно нужное, но не знаешь что, то я постараюсь тебе помочь!
 
