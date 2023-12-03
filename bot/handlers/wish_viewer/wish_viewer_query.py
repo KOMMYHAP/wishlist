@@ -71,7 +71,7 @@ def _make_wish_view_markup(editor_id: int, observer_id: int, wish: WishRecord) -
         ))
     elif wish.reserved_by_user_id is not None and observer_id == wish.reserved_by_user_id:
         keyboard.row(InlineKeyboardButton(
-            text='Не буду дарить',
+            text='Передумал дарить',
             callback_data=wish_view_action_callback_data.new(action=WishViewerStates.RESERVATION.value,
                                                              editor_id=editor_id)
         ))
