@@ -7,7 +7,6 @@ from bot.filters.wish_editor_query_filter import wish_editor_callback_data
 from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
 from bot.keyboards.wish_edit_keyboard import make_wish_edit_keyboard
 from bot.types.MessageArgs import MessageArgs
-from bot.utilities.user_fullname import get_user_fullname
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from wish.wish_manager import WishManager
 
@@ -66,12 +65,15 @@ async def _open_wish_editor(wish_draft: WishEditorDraft, wish_manager: WishManag
     if owner_user is None:
         logger.error("Cannot find user by id '%d'", owner_user_id)
         return None
-    text = f"{get_user_fullname(owner_user)} желает:"
+
+    text = ""
     if len(wish_draft.title) > 0:
         text += f"\nНазвание: {wish_draft.title}"
     if len(wish_draft.hint) > 0:
         text += f"\nОписание: {wish_draft.hint}"
     if wish_draft.cost > 0:
         text += "\nСтоимость: {:.2f}".format(wish_draft.cost)
+    if len(text) == 0:
+        text = "Создай новое желание:"
 
     return MessageArgs(text, make_wish_edit_keyboard(wish_draft))
