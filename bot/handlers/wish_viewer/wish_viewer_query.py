@@ -33,12 +33,12 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
 
     await state.update_wish_viewer_draft(call.from_user.id, draft)
 
-    owner_username = await wish_manager.find_username(wish.owner_id)
+    owner_username = await wish_manager.find_user_by_id(wish.owner_id)
     reserved_by_username = '<не зарезервировано>'
     if draft.reserved:
         reserved_by_username = call.from_user.username
     if wish.reserved_by_user_id is not None:
-        reserved_by_username = await wish_manager.find_username(wish.reserved_by_user_id)
+        reserved_by_username = await wish_manager.find_user_by_id(wish.reserved_by_user_id)
 
     title = wish.title if len(wish.title) > 0 else "<название отсутствует>"
     hint = wish.hint if len(wish.hint) > 0 else "<описание отсутствует>"

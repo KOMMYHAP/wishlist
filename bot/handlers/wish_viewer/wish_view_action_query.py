@@ -1,14 +1,13 @@
 from logging import Logger
 
 from telebot.async_telebot import AsyncTeleBot
-from telebot.asyncio_helper import ApiTelegramException
 from telebot.types import CallbackQuery
 
 from bot.filters.wish_view_action_filter import wish_view_action_callback_data
 from bot.handlers.wish_idle_state import wish_idle_state
 from bot.handlers.wish_viewer.wish_viewer_draft import WishViewerDraft
 from bot.handlers.wish_viewer.wish_viewer_states import WishViewerStates
-from bot.handlers.wish_viewer.wishlist_viewer import show_wishlist_viewer
+from bot.handlers.wish_viewer.wishlist_viewer import edit_user_wishlist_editor
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from wish.wish_manager import WishManager
 
@@ -21,10 +20,7 @@ async def wish_view_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_ma
     action = int(callback_data['action'])
     editor_id = int(callback_data['editor_id'])
 
-    try:
-        await bot.answer_callback_query(call.id)
-    except ApiTelegramException as e:
-        logger.warning('Bot exception occurred!', exc_info=e)
+    await bot.answer_callback_query(call.id)
 
     draft = await state.get_wish_viewer_draft(call.from_user.id)
     if draft is None:
@@ -39,6 +35,7 @@ async def wish_view_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_ma
     wish = await wish_manager.get_wish(draft.wish_id)
     if wish is None:
         logger.error('Wish draft is missing, nothing to apply!')
+        await bot.send_message(call.message.chat.id, 'Что-то пошло не так, не мог бы ты попробовать снова?')
         return
 
     if action == WishViewerStates.RESERVATION:
@@ -58,7 +55,7 @@ async def _wish_viewer_reserve(call: CallbackQuery, bot: AsyncTeleBot, wish_mana
     await state.delete_wish_viewer_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here
-    await show_wishlist_viewer(bot, call.message, wish_owner_id, wish_manager, logger, 0)
+    await edit_user_wishlist_editor(bot, logger, call.message, wish_owner_id, wish_manager, 0)
 
 
 async def _wish_viewer_back(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
@@ -66,5 +63,6 @@ async def _wish_viewer_back(call: CallbackQuery, bot: AsyncTeleBot, wish_manager
     logger = logger.getChild('wish_viewer_back')
     await bot.set_state(call.from_user.id, wish_idle_state)
     await state.delete_wish_viewer_draft(call.from_user.id)
+
     # todo: store open page id when user starts to edit wish and restore it here
-    await show_wishlist_viewer(bot, call.message, wish_owner_id, wish_manager, logger, 0)
+    await edit_user_wishlist_editor(bot, logger, call.message, wish_owner_id, wish_manager, 0)

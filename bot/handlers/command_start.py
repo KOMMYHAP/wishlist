@@ -1,3 +1,5 @@
+from logging import Logger
+
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import BotCommand, Message
 
@@ -7,7 +9,8 @@ from wish.types.user import User
 from wish.wish_manager import WishManager
 
 
-async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manager: WishManager) -> None:
+async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manager: WishManager, logger: Logger) -> None:
+    logger = logger.getChild('start_command')
     user = User(message.from_user.id, message.from_user.username)
 
     bot_commands: list[BotCommand] = []
@@ -33,4 +36,4 @@ async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manage
 """
         await bot.send_message(message.chat.id, hello_world_message)
 
-    await send_my_wishlist_editor(message, bot, wish_manager, 0)
+    await send_my_wishlist_editor(logger, message, bot, wish_manager, 0)

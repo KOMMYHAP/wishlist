@@ -27,19 +27,13 @@ class WishManager:
         self.wish_per_page = 5
         pass
 
-    async def find_username(self, user_id: int) -> str | None:
+    async def find_user_by_id(self, user_id: int) -> User | None:
         self._log.debug('find_username(%d)', user_id)
-        user = await self._storage.find_user_by_id(user_id)
-        if user is None:
-            return None
-        return user.name
+        return await self._storage.find_user_by_id(user_id)
 
-    async def find_user_id(self, user_name: str) -> int | None:
+    async def find_user_by_name(self, user_name: str) -> User | None:
         self._log.debug('find_user_id(%s)', user_name)
-        user = await self._storage.find_user_by_name(user_name)
-        if user is None:
-            return None
-        return user.id
+        return await self._storage.find_user_by_name(user_name)
 
     async def get_wish(self, wish_id: int) -> WishRecord | None:
         self._log.debug('get_wish(%d)', wish_id)

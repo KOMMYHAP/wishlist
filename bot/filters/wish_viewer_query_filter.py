@@ -2,6 +2,7 @@ from telebot.asyncio_filters import AdvancedCustomFilter
 from telebot.callback_data import CallbackDataFilter, CallbackData
 from telebot.types import CallbackQuery
 
+wish_viewer_new_marker = -1
 wish_viewer_callback_data = CallbackData("id", prefix="wish_viewer_query")
 
 

@@ -4,7 +4,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
 from bot.handlers.wish_idle_state import wish_idle_state
-from bot.handlers.wish_viewer.wishlist_viewer import show_wishlist_viewer
+from bot.handlers.wish_viewer.wishlist_viewer import send_user_wishlist_editor
 from wish.wish_manager import WishManager
 
 
@@ -20,9 +20,8 @@ async def wishlist_view_handler(message: Message, bot: AsyncTeleBot, wish_manage
     if username.startswith("@"):
         username = username.removeprefix("@")
 
-    user_id = await wish_manager.find_user_id(username)
-    if user_id is None:
+    target = await wish_manager.find_user_by_name(username)
+    if target is None:
         await bot.reply_to(message, 'Я не смог найти такого пользователя')
         return
-
-    await show_wishlist_viewer(bot, message, user_id, wish_manager, logger, 0)
+    await send_user_wishlist_editor(bot, logger, message, target.id, wish_manager, 0)

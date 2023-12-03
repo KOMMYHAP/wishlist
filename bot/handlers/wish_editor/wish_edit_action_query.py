@@ -54,7 +54,7 @@ async def wish_edit_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_ma
     if action == WishEditStates.COMPLETION:
         await _wish_apply(call, bot, wish_manager, state, logger)
     elif action == WishEditStates.ABORT:
-        await _wish_abort(call, bot, wish_manager, state)
+        await _wish_abort(call, bot, wish_manager, state, logger)
     else:
         await bot.send_message(call.message.chat.id, action_data)
 
@@ -76,12 +76,13 @@ async def _wish_apply(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
     await state.delete_wish_editor_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here
-    await edit_my_wishlist_editor(call.message, call.from_user.id, bot, wish_manager, 0)
+    await edit_my_wishlist_editor(logger, call.message, bot, wish_manager, 0)
 
 
 async def _wish_abort(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
-                      state: StateBaseAdapter) -> None:
+                      state: StateBaseAdapter, logger: Logger) -> None:
+    logger = logger.getChild('wish_abort_editing')
     await bot.set_state(call.from_user.id, wish_idle_state)
     await state.delete_wish_editor_draft(call.from_user.id)
     # todo: store open page id when user starts to edit wish and restore it here
-    await edit_my_wishlist_editor(call.message, call.from_user.id, bot, wish_manager, 0)
+    await edit_my_wishlist_editor(logger, call.message, bot, wish_manager, 0)

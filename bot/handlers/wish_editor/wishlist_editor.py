@@ -1,31 +1,54 @@
+from logging import Logger
+
 from telebot.async_telebot import AsyncTeleBot
+from telebot.callback_data import CallbackData
 from telebot.types import Message
 
-from bot.keyboards.wishlist_editor_keyboard import generate_wishlist_editor_keyboard
+from bot.filters.wish_editor_query_filter import wish_editor_callback_data, wish_editor_new_marker
+from bot.filters.wishlist_editor_filter import wishlist_editor_callback_data
+from bot.handlers.wishlist_request import make_wishlist_request, WishlistRequestConfig, WishlistRequest
 from wish.wish_manager import WishManager
 
 
-async def send_my_wishlist_editor(message: Message, bot: AsyncTeleBot, wish_manager: WishManager,
+async def send_my_wishlist_editor(logger: Logger, message: Message, bot: AsyncTeleBot, wish_manager: WishManager,
                                   page_idx: int) -> None:
-    return await _send_my_wishlist_editor_impl(bot, message, message.from_user.id, wish_manager, page_idx)
+    request = await _make_editor_config(logger, wish_manager, message.from_user.id, page_idx)
+    if request is None:
+        await bot.reply_to(message, 'Что-то пошло не так, не мог бы ты попробовать снова?')
+        return
+    await bot.send_message(message.chat.id, request.text, reply_markup=request.reply_markup)
 
 
-async def edit_my_wishlist_editor(message: Message, user_id: int, bot: AsyncTeleBot, wish_manager: WishManager,
+async def edit_my_wishlist_editor(logger: Logger, message: Message, bot: AsyncTeleBot, wish_manager: WishManager,
                                   page_idx: int) -> None:
-    return await _send_my_wishlist_editor_impl(bot, message, user_id, wish_manager, page_idx)
+    request = await _make_editor_config(logger, wish_manager, message.from_user.id, page_idx)
+    if request is None:
+        await bot.reply_to(message, 'Что-то пошло не так, не мог бы ты попробовать снова?')
+        return
+    await bot.edit_message_text(request.text, message.id, reply_markup=request.reply_markup)
 
 
-async def _send_my_wishlist_editor_impl(bot: AsyncTeleBot, message: Message, user_id: int, wish_manager: WishManager,
-                                        page_idx: int) -> None:
-    wishes_per_page = wish_manager.wish_per_page
-    response = await wish_manager.get_wishlist(user_id, user_id)
-    pages_count = len(response.wishlist) / wish_manager.wish_per_page
+def _my_wishlist_page_navigation_factory(page_idx: int) -> CallbackData:
+    return wishlist_editor_callback_data.new(page_idx=page_idx)
 
-    text = 'Список желаний'
-    if len(response.wishlist) == 0:
-        text = 'Список желаний пуст'
-    elif pages_count > 1:
-        text += f"(стр. {page_idx + 1}/{pages_count})"
 
-    await bot.edit_message_text(text, message.chat.id, message.id,
-                                reply_markup=generate_wishlist_editor_keyboard(response, page_idx, wishes_per_page))
+def _wish_editor_callback_factory(wish_idx: int | None) -> CallbackData:
+    return wish_editor_callback_data.new(id=wish_idx or wish_editor_new_marker)
+
+
+async def _make_editor_config(logger: Logger, wish_manager: WishManager, sender_id: int,
+                              page_idx: int) -> WishlistRequest | None:
+    sender = await wish_manager.find_user_by_id(sender_id)
+    if sender is None:
+        logger.error('Cannot find user by id %d', sender_id)
+        return
+
+    config = WishlistRequestConfig(sender, sender, page_idx,
+                                   _my_wishlist_page_navigation_factory,
+                                   _wish_editor_callback_factory)
+    request = await make_wishlist_request(config, wish_manager)
+    if request is None:
+        logger.error("Cannot find user's wishlist by user id %d", sender_id)
+        return
+
+    return request
