@@ -19,35 +19,28 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         self._log = logging.getLogger('in-memory storage_adapters')
 
     async def find_user_by_name(self, username: str) -> User | None:
+        found_user_data: dict | None = None
         for id, user_data in self.users.items():
             if user_data.get('user_name') != username:
                 continue
-            try:
-                return User(user_data['user_id'], username)
-            except KeyError as e:
-                self._log.exception('username %s', username, exc_info=e)
-                return None
-        return None
+            found_user_data = user_data
+            break
+        if found_user_data is None:
+            return None
+        return self._get_user(found_user_data)
 
     async def find_user_by_id(self, user_id: int) -> User | None:
-        user = self.users.get(user_id)
-        if user is None:
+        user_data = self.users.get(user_id)
+        if user_data is None:
             return None
-        try:
-            return User(user['user_id'], user['user_name'])
-        except KeyError as e:
-            self._log.exception('user id %d, user data %s', user_id, json.dumps(user, indent='  '), exc_info=e)
-            return None
+        return self._get_user(user_data)
 
     async def create_user(self, user: User) -> bool:
         old_user = self.users.get(user.id)
         if old_user is not None:
             return False
-        user_data = {
-            'user_id': user.id,
-            'user_name': user.name
-        }
-        self.users[user.id] = user_data
+        self.users[user.id] = {}
+        await self.update_user(user)
         return True
 
     async def update_user(self, user: User) -> bool:
@@ -55,7 +48,10 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         if user_data is None:
             return False
         user_data['user_id'] = user.id
-        user_data['user_name'] = user.name
+        user_data['user_name'] = user.username
+        user_data['first_name'] = user.first_name
+        user_data['last_name'] = user.last_name
+        user_data['chat_id'] = user.chat_id
         return True
 
     async def delete_user(self, user_id: int) -> bool:
@@ -64,6 +60,19 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
             return False
         self.users.pop(user_id)
         return True
+
+    def _get_user(self, user_data: dict) -> User | None:
+        try:
+            return User(
+                user_data['user_id'],
+                user_data['user_name'],
+                user_data.get('first_name'),
+                user_data.get('last_name'),
+                user_data.get('chat_id'),
+            )
+        except KeyError as e:
+            self._log.exception('user data %s', json.dumps(user_data, indent='  '), exc_info=e)
+            return None
 
     async def get_wishlist(self, user_id: int) -> list[WishRecord]:
         wishlist: list[WishRecord] = []

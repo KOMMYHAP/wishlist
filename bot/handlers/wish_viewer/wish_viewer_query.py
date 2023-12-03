@@ -39,7 +39,7 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
 
     owner_user = await wish_manager.find_user_by_id(wish.owner_id)
 
-    text = f"Желание пользователя @{owner_user.name}"
+    text = f"Желание пользователя @{owner_user.username}"
     if len(wish.title) > 0:
         text += f"\nНазвание: {wish.title}"
     if len(wish.hint) > 0:
@@ -50,7 +50,7 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
         reserved_by_user = await wish_manager.find_user_by_id(wish.reserved_by_user_id)
         if reserved_by_user is None:
             logger.error("Wish reserved by unknown user %d", wish.reserved_by_user_id)
-        reserved_by_username = reserved_by_user.name if reserved_by_user else f'{wish.reserved_by_user_id}'
+        reserved_by_username = reserved_by_user.username if reserved_by_user else f'{wish.reserved_by_user_id}'
 
         if observer_id != wish.owner_id or wish_manager.config.can_wish_owner_see_reservation:
             text += f"\nХочет подарить: @{reserved_by_username}"
