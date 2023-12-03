@@ -6,11 +6,11 @@ from wish.types.wish_record import WishRecord
 
 class WishStorageBaseAdapter(ABC):
     @abstractmethod
-    async def get_user_by_name(self, username: str) -> User | None:
+    async def find_user_by_name(self, username: str) -> User | None:
         raise NotImplementedError
 
     @abstractmethod
-    async def get_user_by_id(self, user_id: int) -> User | None:
+    async def find_user_by_id(self, user_id: int) -> User | None:
         raise NotImplementedError
 
     @abstractmethod

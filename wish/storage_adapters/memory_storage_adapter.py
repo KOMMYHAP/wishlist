@@ -15,7 +15,7 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         self.wishes = {}
         self._log = logging.getLogger('in-memory storage_adapters')
 
-    async def get_user_by_name(self, username: str) -> User | None:
+    async def find_user_by_name(self, username: str) -> User | None:
         for id, user_data in self.users.items():
             if user_data.get('user_name') != username:
                 continue
@@ -26,7 +26,7 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
                 return None
         return None
 
-    async def get_user_by_id(self, user_id: int) -> User | None:
+    async def find_user_by_id(self, user_id: int) -> User | None:
         user = self.users.get(user_id)
         if user is None:
             return None

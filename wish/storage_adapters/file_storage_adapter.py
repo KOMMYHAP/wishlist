@@ -15,11 +15,11 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
 
         self._load_from_file()
 
-    async def get_user_by_name(self, username: str) -> User | None:
-        return await self._memory_storage.get_user_by_name(username)
+    async def find_user_by_name(self, username: str) -> User | None:
+        return await self._memory_storage.find_user_by_name(username)
 
-    async def get_user_by_id(self, user_id: int) -> User | None:
-        return await self._memory_storage.get_user_by_id(user_id)
+    async def find_user_by_id(self, user_id: int) -> User | None:
+        return await self._memory_storage.find_user_by_id(user_id)
 
     async def create_user(self, user: User) -> bool:
         result = await self._memory_storage.create_user(user)

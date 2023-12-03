@@ -29,14 +29,14 @@ class WishManager:
 
     async def find_username(self, user_id: int) -> str | None:
         self._log.debug('find_username(%d)', user_id)
-        user = await self._storage.get_user_by_id(user_id)
+        user = await self._storage.find_user_by_id(user_id)
         if user is None:
             return None
         return user.name
 
     async def find_user_id(self, user_name: str) -> int | None:
         self._log.debug('find_user_id(%s)', user_name)
-        user = await self._storage.get_user_by_name(user_name)
+        user = await self._storage.find_user_by_name(user_name)
         if user is None:
             return None
         return user.id
@@ -106,7 +106,7 @@ class WishManager:
     async def get_wishlist(self, user_id: int, target_user_id: int) -> WishlistResponse:
         self._log.debug('get_wishlist(%d, %d)', user_id, target_user_id)
 
-        target_user = await self._storage.get_user_by_id(target_user_id)
+        target_user = await self._storage.find_user_by_id(target_user_id)
         if target_user is None:
             self._log.debug('get_wishlist(%d, %d) -> unknown target user', user_id, target_user_id)
             return WishlistResponse([], None, {})
@@ -116,7 +116,7 @@ class WishManager:
         for wish in wishlist:
             if wish.reserved_by_user_id is None:
                 continue
-            reserved_by_user = await self._storage.get_user_by_id(wish.owner_id)
+            reserved_by_user = await self._storage.find_user_by_id(wish.owner_id)
             response.reservation_map[wish.wish_id] = reserved_by_user
         return response
 
@@ -138,7 +138,7 @@ class WishManager:
         return removed
 
     async def register_user(self, user: User) -> bool:
-        old_user = await self._storage.get_user_by_id(user.id)
+        old_user = await self._storage.find_user_by_id(user.id)
         if old_user is not None:
             self._log.debug('register_user(%s) -> user found', str(user))
             return False
