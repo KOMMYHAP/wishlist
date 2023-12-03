@@ -4,6 +4,7 @@ from typing import Callable
 from telebot.callback_data import CallbackData
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from bot.types.MessageArgs import MessageArgs
 from wish.types.user import User
 from wish.types.wish_record import WishRecord
 from wish.wish_manager import WishManager
@@ -30,14 +31,14 @@ class WishlistRequest:
     reply_markup: InlineKeyboardMarkup
 
 
-async def make_wishlist_request(config: WishlistRequestConfig, wish_manager: WishManager) -> WishlistRequest | None:
+async def make_wishlist_request(config: WishlistRequestConfig, wish_manager: WishManager) -> MessageArgs | None:
     wishes_per_page = wish_manager.config.wishes_per_page
     response = await wish_manager.get_wishlist(config.sender.id, config.target.id)
     if response.owner is None or response.owner.id != config.target.id:
         return
     text = _make_wishlist_title(config, response.wishlist, wishes_per_page)
     markup = _make_wishlist_markup(config, response.wishlist, wishes_per_page)
-    return WishlistRequest(text, markup)
+    return MessageArgs(text, markup)
 
 
 def _make_wishlist_title(config: WishlistRequestConfig, wishlist: list[WishRecord], wishes_per_page: int) -> str:

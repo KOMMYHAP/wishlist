@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+current_user_data_version = 1
+
 
 @dataclass
 class User:
