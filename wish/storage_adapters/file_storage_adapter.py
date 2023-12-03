@@ -3,6 +3,7 @@ import logging
 
 from wish.storage_adapters.base_storage_adapter import WishStorageBaseAdapter
 from wish.storage_adapters.memory_storage_adapter import WishStorageMemoryAdapter
+from wish.types.friend_record import FriendRecord
 from wish.types.user import User
 from wish.types.wish_record import WishRecord
 
@@ -65,6 +66,15 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
             self._store_to_file()
         return result
 
+    async def get_friend_list(self, user_id: int) -> list[FriendRecord]:
+        return await self._memory_storage.get_friend_list(user_id)
+
+    async def update_friend_list(self, user_id: int, friends: list[FriendRecord]) -> bool:
+        result = await self._memory_storage.update_friend_list(user_id, friends)
+        if result:
+            self._store_to_file()
+        return result
+
     def _load_from_file(self):
         try:
             with open(self._filename, 'r', encoding='utf-8') as f:
@@ -74,6 +84,9 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
                     self._memory_storage.wishes[int(key)] = value
                 for key, value in root_data['users'].items():
                     self._memory_storage.users[int(key)] = value
+                if root_data.get('friends') is not None:
+                    for key, value in root_data['friends'].items():
+                        self._memory_storage.users[int(key)] = value
         except FileNotFoundError:
             self._logger.debug('File %s was not found', self._filename)
         except OSError as io_error:
@@ -85,6 +98,7 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
                 root_data = {
                     'users': self._memory_storage.users,
                     'wishes': self._memory_storage.wishes,
+                    'friends': self._memory_storage.friends,
                 }
                 json.dump(root_data, f, indent='   ')
         except OSError as io_error:

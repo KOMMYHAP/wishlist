@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from wish.types.friend_record import FriendRecord
 from wish.types.user import User
 from wish.types.wish_record import WishRecord
 
@@ -43,4 +44,12 @@ class WishStorageBaseAdapter(ABC):
 
     @abstractmethod
     async def remove_wish(self, user_id: int, wish_id: int) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_friend_list(self, user_id: int) -> list[FriendRecord]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def update_friend_list(self, user_id: int, friends: list[FriendRecord]) -> bool:
         raise NotImplementedError

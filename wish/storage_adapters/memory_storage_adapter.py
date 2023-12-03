@@ -2,6 +2,7 @@ import json
 import logging
 
 from wish.storage_adapters.base_storage_adapter import WishStorageBaseAdapter
+from wish.types.friend_record import FriendRecord
 from wish.types.user import User
 from wish.types.wish_record import WishRecord
 
@@ -9,10 +10,12 @@ from wish.types.wish_record import WishRecord
 class WishStorageMemoryAdapter(WishStorageBaseAdapter):
     users: dict[int, dict]
     wishes: dict[int, dict]
+    friends: dict[int, list[int]]
 
     def __init__(self):
         self.users = {}
         self.wishes = {}
+        self.friends = {}
         self._log = logging.getLogger('in-memory storage_adapters')
 
     async def find_user_by_name(self, username: str) -> User | None:
@@ -122,4 +125,30 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         if wish_data is None:
             return False
         self.wishes.pop(wish_id)
+        return True
+
+    async def get_friend_list(self, user_id: int) -> list[FriendRecord]:
+        friend_records = self.friends.get(user_id)
+        if friend_records is None:
+            return []
+
+        friends: list[FriendRecord] = []
+        for friend_id in friend_records:
+            user = await self.find_user_by_id(friend_id)
+            if user is None:
+                self._log.error("User '%d' contains unknown friend with id '%d'", user_id, friend_id)
+                continue
+            friends.append(FriendRecord(user))
+        return friends
+
+    async def update_friend_list(self, user_id: int, friends: list[FriendRecord]) -> bool:
+        friend_records = self.friends.get(user_id)
+        if friend_records is not None:
+            self.friends.pop(user_id)
+
+        friend_records = []
+        self.friends[user_id] = friend_records
+
+        for friend in friends:
+            friend_records.append(friend.user.id)
         return True
