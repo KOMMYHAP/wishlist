@@ -52,7 +52,7 @@ def _make_wishlist_title(config: WishlistRequestConfig, wishlist: list[WishRecor
         if empty_wishlist:
             text += "\nНажми '+', чтобы добавить желание."
 
-    pages_count = len(wishlist) / wishes_per_page
+    pages_count = len(wishlist) // wishes_per_page
     if pages_count > 1:
         text += f" (стр. {config.current_page_idx + 1}/{pages_count})"
 
