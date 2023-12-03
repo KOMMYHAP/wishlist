@@ -1,12 +1,14 @@
 from logging import Logger
 
 from telebot.async_telebot import AsyncTeleBot
-from telebot.types import CallbackQuery
+from telebot.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
+from bot.filters.wish_view_action_filter import wish_view_action_callback_data
 from bot.filters.wish_viewer_query_filter import wish_viewer_callback_data
 from bot.handlers.wish_viewer.wish_viewer_draft import WishViewerDraft
-from bot.keyboards.wish_view_keyboard import make_wish_view_keyboard
+from bot.handlers.wish_viewer.wish_viewer_states import WishViewerStates
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
+from wish.types.wish_record import WishRecord
 from wish.wish_manager import WishManager
 
 
@@ -18,20 +20,22 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
     wish_id = int(callback_data['id'])
 
     await bot.answer_callback_query(call.id)
-    draft = await state.get_wish_viewer_draft(call.from_user.id)
+    observer_id = call.from_user.id
+    draft = await state.get_wish_viewer_draft(observer_id)
 
     if draft and draft.editor_id != call.message.id:
         await bot.reply_to(call.message, "Оки, давай отредактируем другое желание")
-        await state.delete_wish_editor_draft(call.from_user.id)
+        await state.delete_wish_editor_draft(observer_id)
 
     wish = await wish_manager.get_wish(wish_id)
     if wish is None:
         logger.error('Trying to query viewer for invalid wish id %d', wish_id)
         await bot.reply_to(call.message, 'Я не смог найти это желание, может попробуем с другим?')
         return
-    draft = WishViewerDraft(call.message.id, call.from_user.id, wish.wish_id, False)
 
-    await state.update_wish_viewer_draft(call.from_user.id, draft)
+    draft = WishViewerDraft(call.message.id, observer_id, wish.wish_id, False)
+
+    await state.update_wish_viewer_draft(observer_id, draft)
 
     owner_user = await wish_manager.find_user_by_id(wish.owner_id)
 
@@ -43,8 +47,41 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
     if wish.cost > 0:
         text += "\nСтоимость: {:.2f}".format(wish.cost)
     if wish.reserved_by_user_id is not None:
-        reserved_by_username = await wish_manager.find_user_by_id(wish.reserved_by_user_id)
-        text += f"\nЗарезервировано: {reserved_by_username}"
+        reserved_by_user = await wish_manager.find_user_by_id(wish.reserved_by_user_id)
+        if reserved_by_user is None:
+            logger.error("Wish reserved by unknown user %d", wish.reserved_by_user_id)
+        reserved_by_username = reserved_by_user.name if reserved_by_user else f'{wish.reserved_by_user_id}'
 
-    await bot.edit_message_text(text, call.message.chat.id, call.message.id,
-                                reply_markup=make_wish_view_keyboard(draft.editor_id))
+        if observer_id != wish.owner_id or wish_manager.config.can_wish_owner_see_reservation:
+            text += f"\nХочет подарить: @{reserved_by_username}"
+        else:
+            text += f"\nКое-кто уже планирует подарить тебе этот подарок!"
+
+    markup = _make_wish_view_markup(draft.editor_id, observer_id, wish)
+    await bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
+
+
+def _make_wish_view_markup(editor_id: int, observer_id: int, wish: WishRecord) -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup()
+
+    # todo: look at switch_inline_query_current_chat in InlineKeyboardButton
+
+    if wish.reserved_by_user_id is None and wish.owner_id != observer_id:
+        keyboard.row(InlineKeyboardButton(
+            text='Планирую дарить',
+            callback_data=wish_view_action_callback_data.new(action=WishViewerStates.RESERVATION.value,
+                                                             editor_id=editor_id)
+        ))
+    elif wish.reserved_by_user_id is not None and observer_id == wish.reserved_by_user_id:
+        keyboard.row(InlineKeyboardButton(
+            text='Не буду дарить',
+            callback_data=wish_view_action_callback_data.new(action=WishViewerStates.RESERVATION.value,
+                                                             editor_id=editor_id)
+        ))
+
+    keyboard.row(
+        InlineKeyboardButton(
+            text='Вернуться',
+            callback_data=wish_view_action_callback_data.new(action=WishViewerStates.BACK.value, editor_id=editor_id)
+        ))
+    return keyboard

@@ -12,6 +12,7 @@ from bot.utilities.bot_exception_handler import DebugExceptionHandler
 from wish.state_adapters.state_storage_adapter import StateStorageAdapter
 from wish.storage_adapters.file_storage_adapter import WishStorageFileAdapter
 from wish.wish_manager import WishManager
+from wish.wishlist_config import WishlistConfig
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -23,13 +24,20 @@ async def entry_point() -> None:
     parser = argparse.ArgumentParser("WishList telegram bot")
     parser.add_argument('-t', '--token', required=True)
     parser.add_argument('-f', '--storage-file', required=True)
+    parser.add_argument('--wishes-per-page', type=int, default=5, required=False)
+    parser.add_argument('--allow-wish-owner-see-reservation', type=bool, default=False, required=False)
     args = parser.parse_args()
 
     root_logger = logging.getLogger()
     state_storage = StateMemoryStorage()
     state_adapter = StateStorageAdapter(state_storage, root_logger)
     wish_storage = WishStorageFileAdapter(args.storage_file)
-    wish_manager = WishManager(wish_storage, root_logger)
+
+    wishlist_config = WishlistConfig(
+        args.wishes_per_page,
+        args.allow_wish_owner_see_reservation
+    )
+    wish_manager = WishManager(wish_storage, root_logger, wishlist_config)
 
     bot = AsyncTeleBot(args.token, exception_handler=DebugExceptionHandler(), state_storage=state_storage)
 

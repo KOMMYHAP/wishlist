@@ -6,6 +6,7 @@ from bot.handlers.wish_viewer.wish_viewer_draft import WishViewerDraft
 from wish.storage_adapters.base_storage_adapter import WishStorageBaseAdapter
 from wish.types.user import User
 from wish.types.wish_record import WishRecord
+from wish.wishlist_config import WishlistConfig
 
 
 @dataclass
@@ -18,14 +19,13 @@ class WishlistResponse:
 class WishManager:
     _storage: WishStorageBaseAdapter
     _log: Logger
-    wish_per_page: int
+    config: WishlistConfig
 
-    def __init__(self, storage: WishStorageBaseAdapter, logger: Logger):
+    def __init__(self, storage: WishStorageBaseAdapter, logger: Logger, config: WishlistConfig):
         self._storage = storage
         self._log = logger.getChild('wish_manager')
         self._incomplete_wish_by_user = {}
-        self.wish_per_page = 5
-        pass
+        self.config = config
 
     async def find_user_by_id(self, user_id: int) -> User | None:
         self._log.debug('find_username(%d)', user_id)

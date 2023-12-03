@@ -9,6 +9,7 @@ from bot.handlers.wish_viewer.wish_viewer_draft import WishViewerDraft
 from bot.handlers.wish_viewer.wish_viewer_states import WishViewerStates
 from bot.handlers.wish_viewer.wishlist_viewer import edit_user_wishlist_editor
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
+from wish.types.wish_record import WishRecord
 from wish.wish_manager import WishManager
 
 
@@ -39,7 +40,7 @@ async def wish_view_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_ma
         return
 
     if action == WishViewerStates.RESERVATION:
-        await _wish_viewer_reserve(call, bot, wish_manager, state, logger, draft, wish.owner_id)
+        await _wish_viewer_reserve(call, bot, wish_manager, state, logger, draft, wish)
     elif action == WishViewerStates.BACK:
         await _wish_viewer_back(call, bot, wish_manager, state, wish.owner_id, logger)
     else:
@@ -47,15 +48,32 @@ async def wish_view_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_ma
 
 
 async def _wish_viewer_reserve(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
-                               state: StateBaseAdapter, logger: Logger, draft: WishViewerDraft, wish_owner_id: int):
+                               state: StateBaseAdapter, logger: Logger, draft: WishViewerDraft, wish: WishRecord):
     logger = logger.getChild('wish_viewer_reserve')
-    draft.reserved = True
+
+    error_message: str | None = None
+
+    if wish.reserved_by_user_id and wish.reserved_by_user_id != call.from_user.id:
+        error_message = "Упс, кажется кто-то другой тоже хочет исполнить это желание!"
+
+    if wish.owner_id == call.from_user.id:
+        error_message = "Позволь твоим друзьям исполнить твое желание :)"
+
+    if error_message is not None:
+        await bot.send_message(call.message.chat.id, error_message)
+        await edit_user_wishlist_editor(bot, logger, call, wish.owner_id, wish_manager, 0)
+        return
+
+    if wish.reserved_by_user_id is None:
+        draft.reserved = True
+    else:
+        draft.reserved = False
 
     await wish_manager.update_wish_by_viewer(call.from_user.id, draft)
     await state.delete_wish_viewer_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here
-    await edit_user_wishlist_editor(bot, logger, call, wish_owner_id, wish_manager, 0)
+    await edit_user_wishlist_editor(bot, logger, call, wish.owner_id, wish_manager, 0)
 
 
 async def _wish_viewer_back(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,

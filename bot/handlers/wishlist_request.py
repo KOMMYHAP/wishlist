@@ -31,7 +31,7 @@ class WishlistRequest:
 
 
 async def make_wishlist_request(config: WishlistRequestConfig, wish_manager: WishManager) -> WishlistRequest | None:
-    wishes_per_page = wish_manager.wish_per_page
+    wishes_per_page = wish_manager.config.wishes_per_page
     response = await wish_manager.get_wishlist(config.sender.id, config.target.id)
     if response.owner is None or response.owner.id != config.target.id:
         return
