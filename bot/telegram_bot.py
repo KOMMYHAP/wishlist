@@ -33,6 +33,9 @@ async def entry_point() -> None:
 
     bot = AsyncTeleBot(args.token, exception_handler=DebugExceptionHandler(), state_storage=state_storage)
 
+    bot_user = await bot.get_me()
+    root_logger.info("Starts bot @%s (id: %d)", bot_user.username, bot_user.id)
+
     setup_filters(bot)
     setup_middlewares(bot, root_logger, state_adapter, wish_manager)
     setup_handlers(bot)
