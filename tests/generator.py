@@ -29,12 +29,14 @@ async def generator_entry_point() -> None:
     parser.add_argument('--wish-count', required=True, type=int)
     parser.add_argument('--wishes-per-page', type=int, default=5, required=False)
     parser.add_argument('--allow-wish-owner-see-reservation', type=bool, default=False, required=False)
+    parser.add_argument('--allow-user-sees-owned-wishlist', type=bool, default=False, required=False)
     parser.add_argument('--initial-wish-id', type=int, default=1000, required=False)
     args = parser.parse_args()
 
     wishlist_config = WishlistConfig(
         args.wishes_per_page,
         args.allow_wish_owner_see_reservation,
+        args.allow_user_sees_owned_wishlist,
         args.initial_wish_id
     )
 
