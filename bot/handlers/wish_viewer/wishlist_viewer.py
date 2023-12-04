@@ -12,7 +12,7 @@ from bot.types.MessageArgs import MessageArgs
 from wish.wish_manager import WishManager
 
 
-async def send_user_wishlist_editor(bot: AsyncTeleBot, logger: Logger, message: Message, target_user_id: int,
+async def send_user_wishlist_viewer(bot: AsyncTeleBot, logger: Logger, message: Message, target_user_id: int,
                                     wish_manager: WishManager,
                                     page_idx: int) -> None:
     if target_user_id == message.from_user.id and not wish_manager.config.allow_user_sees_owned_wishlist:
@@ -20,14 +20,14 @@ async def send_user_wishlist_editor(bot: AsyncTeleBot, logger: Logger, message: 
                                f"Для просмотра личного списка желаний попробуй /{WishlistCommands.MY_WISHLIST.value}")
         return
 
-    request = await _make_editor_config(logger, wish_manager, message.from_user.id, target_user_id, page_idx)
+    request = await _make_viewer_config(logger, wish_manager, message.from_user.id, target_user_id, page_idx)
     if request is None:
         await bot.reply_to(message, 'Что-то пошло не так, не мог бы ты попробовать снова?')
         return
     await bot.send_message(message.chat.id, request.text, reply_markup=request.markup)
 
 
-async def edit_user_wishlist_editor(bot: AsyncTeleBot, logger: Logger, call: CallbackQuery, target_user_id: int,
+async def edit_user_wishlist_viewer(bot: AsyncTeleBot, logger: Logger, call: CallbackQuery, target_user_id: int,
                                     wish_manager: WishManager,
                                     page_idx: int) -> None:
     if target_user_id == call.from_user.id and not wish_manager.config.allow_user_sees_owned_wishlist:
@@ -35,14 +35,14 @@ async def edit_user_wishlist_editor(bot: AsyncTeleBot, logger: Logger, call: Cal
                                f"Для просмотра личного списка желаний попробуй /{WishlistCommands.MY_WISHLIST.value}")
         return
 
-    request = await _make_editor_config(logger, wish_manager, call.from_user.id, target_user_id, page_idx)
+    request = await _make_viewer_config(logger, wish_manager, call.from_user.id, target_user_id, page_idx)
     if request is None:
         await bot.send_message(call.message.chat.id, 'Что-то пошло не так, не мог бы ты попробовать снова?')
         return
     await bot.edit_message_text(request.text, call.message.chat.id, call.message.id, reply_markup=request.markup)
 
 
-async def _make_editor_config(logger: Logger, wish_manager: WishManager, sender_id: int, target_id: int,
+async def _make_viewer_config(logger: Logger, wish_manager: WishManager, sender_id: int, target_id: int,
                               current_page_idx: int) -> MessageArgs | None:
     sender = await wish_manager.find_user_by_id(sender_id)
     if sender is None:
@@ -59,7 +59,7 @@ async def _make_editor_config(logger: Logger, wish_manager: WishManager, sender_
     def _wish_factory(wish_idx: int | None) -> CallbackData:
         return wish_viewer_callback_data.new(id=wish_idx or wish_viewer_new_marker)
 
-    config = WishlistRequestConfig(sender, sender, current_page_idx,
+    config = WishlistRequestConfig(sender, target, current_page_idx,
                                    _page_navigation_factory,
                                    _wish_factory)
     request = await make_wishlist_request(config, wish_manager)

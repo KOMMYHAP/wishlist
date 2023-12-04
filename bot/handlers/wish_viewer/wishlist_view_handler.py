@@ -4,7 +4,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
 from bot.handlers.wish_idle_state import wish_idle_state
-from bot.handlers.wish_viewer.wishlist_viewer import send_user_wishlist_editor
+from bot.handlers.wish_viewer.wishlist_viewer import send_user_wishlist_viewer
 from wish.wish_manager import WishManager
 
 
@@ -24,4 +24,4 @@ async def wishlist_view_handler(message: Message, bot: AsyncTeleBot, wish_manage
     if target is None:
         await bot.reply_to(message, 'Я не смог найти такого пользователя')
         return
-    await send_user_wishlist_editor(bot, logger, message, target.id, wish_manager, 0)
+    await send_user_wishlist_viewer(bot, logger, message, target.id, wish_manager, 0)

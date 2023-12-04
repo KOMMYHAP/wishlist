@@ -7,7 +7,7 @@ from bot.filters.wish_view_action_filter import wish_view_action_callback_data
 from bot.handlers.wish_idle_state import wish_idle_state
 from bot.handlers.wish_viewer.wish_viewer_draft import WishViewerDraft
 from bot.handlers.wish_viewer.wish_viewer_states import WishViewerStates
-from bot.handlers.wish_viewer.wishlist_viewer import edit_user_wishlist_editor
+from bot.handlers.wish_viewer.wishlist_viewer import edit_user_wishlist_viewer
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from wish.types.wish_record import WishRecord
 from wish.wish_manager import WishManager
@@ -61,7 +61,7 @@ async def _wish_viewer_reserve(call: CallbackQuery, bot: AsyncTeleBot, wish_mana
 
     if error_message is not None:
         await bot.send_message(call.message.chat.id, error_message)
-        await edit_user_wishlist_editor(bot, logger, call, wish.owner_id, wish_manager, 0)
+        await edit_user_wishlist_viewer(bot, logger, call, wish.owner_id, wish_manager, 0)
         return
 
     if wish.reserved_by_user_id is None:
@@ -73,7 +73,7 @@ async def _wish_viewer_reserve(call: CallbackQuery, bot: AsyncTeleBot, wish_mana
     await state.delete_wish_viewer_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here
-    await edit_user_wishlist_editor(bot, logger, call, wish.owner_id, wish_manager, 0)
+    await edit_user_wishlist_viewer(bot, logger, call, wish.owner_id, wish_manager, 0)
 
 
 async def _wish_viewer_back(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
@@ -83,4 +83,4 @@ async def _wish_viewer_back(call: CallbackQuery, bot: AsyncTeleBot, wish_manager
     await state.delete_wish_viewer_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here
-    await edit_user_wishlist_editor(bot, logger, call, wish_owner_id, wish_manager, 0)
+    await edit_user_wishlist_viewer(bot, logger, call, wish_owner_id, wish_manager, 0)
