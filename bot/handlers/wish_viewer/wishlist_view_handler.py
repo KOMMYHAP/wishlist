@@ -20,6 +20,9 @@ async def wishlist_view_handler(message: Message, bot: AsyncTeleBot, wish_manage
     if username.startswith("@"):
         username = username.removeprefix("@")
 
+    if username.startswith("https://t.me/"):
+        username = username.removeprefix("https://t.me/")
+
     target = await wish_manager.find_user_by_name(username)
     if target is None:
         await bot.reply_to(message, 'Я не смог найти такого пользователя')
