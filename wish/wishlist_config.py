@@ -7,3 +7,4 @@ class WishlistConfig:
     allow_wish_owner_sees_reservation: bool
     allow_user_sees_owned_wishlist: bool
     initial_wish_id: int
+    friends_count_on_page: int

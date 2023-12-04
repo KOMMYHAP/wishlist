@@ -4,7 +4,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import CallbackQuery
 
 from bot.filters.wish_view_action_filter import wish_view_action_callback_data
-from bot.handlers.wish_idle_state import wish_idle_state
+from bot.handlers.bot_idle_state import bot_idle_state
 from bot.handlers.wish_viewer.wish_viewer_draft import WishViewerDraft
 from bot.handlers.wish_viewer.wish_viewer_states import WishViewerStates
 from bot.handlers.wish_viewer.wishlist_viewer import edit_user_wishlist_viewer
@@ -79,7 +79,7 @@ async def _wish_viewer_reserve(call: CallbackQuery, bot: AsyncTeleBot, wish_mana
 async def _wish_viewer_back(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
                             state: StateBaseAdapter, wish_owner_id: int, logger: Logger) -> None:
     logger = logger.getChild('wish_viewer_back')
-    await bot.set_state(call.from_user.id, wish_idle_state)
+    await bot.set_state(call.from_user.id, bot_idle_state)
     await state.delete_wish_viewer_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here

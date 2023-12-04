@@ -7,7 +7,7 @@ from telebot.types import CallbackQuery
 from bot.filters.wish_edit_action_filter import wish_edit_action_callback_data
 from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
 from bot.handlers.wish_editor.wishlist_editor import edit_my_wishlist_editor
-from bot.handlers.wish_idle_state import wish_idle_state
+from bot.handlers.bot_idle_state import bot_idle_state
 from bot.types.wish_edit_states import WishEditStates
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from wish.wish_manager import WishManager
@@ -71,7 +71,7 @@ async def _wish_apply(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
 
     validation_error = await _wish_validate(wish_draft)
     if validation_error is not None:
-        await bot.set_state(call.from_user.id, wish_idle_state)
+        await bot.set_state(call.from_user.id, bot_idle_state)
         await bot.send_message(call.message.chat.id, validation_error)
         return
 
@@ -80,7 +80,7 @@ async def _wish_apply(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
     else:
         await wish_manager.update_wish_by_editor(call.from_user.id, wish_draft)
 
-    await bot.set_state(call.from_user.id, wish_idle_state)
+    await bot.set_state(call.from_user.id, bot_idle_state)
     await state.delete_wish_editor_draft(call.from_user.id)
 
     # todo: store open page id when user starts to edit wish and restore it here
@@ -90,7 +90,7 @@ async def _wish_apply(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
 async def _wish_abort(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
                       state: StateBaseAdapter, logger: Logger) -> None:
     logger = logger.getChild('wish_abort_editing')
-    await bot.set_state(call.from_user.id, wish_idle_state)
+    await bot.set_state(call.from_user.id, bot_idle_state)
     await state.delete_wish_editor_draft(call.from_user.id)
     # todo: store open page id when user starts to edit wish and restore it here
     await edit_my_wishlist_editor(bot, call, logger, wish_manager, 0)

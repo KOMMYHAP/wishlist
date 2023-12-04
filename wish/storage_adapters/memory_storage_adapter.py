@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 
@@ -10,7 +11,7 @@ from wish.types.wish_record import WishRecord
 class WishStorageMemoryAdapter(WishStorageBaseAdapter):
     users: dict[int, dict]
     wishes: dict[int, dict]
-    friends: dict[int, list[int]]
+    friends: dict[int, list[dict]]
     next_wish_id: int
 
     def __init__(self):
@@ -142,17 +143,14 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         return True
 
     async def get_friend_list(self, user_id: int) -> list[FriendRecord]:
-        friend_records = self.friends.get(user_id)
-        if friend_records is None:
+        friends_data_list = self.friends.get(user_id)
+        if friends_data_list is None:
             return []
 
         friends: list[FriendRecord] = []
-        for friend_id in friend_records:
-            user = await self.find_user_by_id(friend_id)
-            if user is None:
-                self._log.error("User '%d' contains unknown friend with id '%d'", user_id, friend_id)
-                continue
-            friends.append(FriendRecord(user))
+        for friend_data in friends_data_list:
+            friend_record = self._get_friend_record(friend_data)
+            friends.append(friend_record)
         return friends
 
     async def update_friend_list(self, user_id: int, friends: list[FriendRecord]) -> bool:
@@ -160,9 +158,28 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         if friend_records is not None:
             self.friends.pop(user_id)
 
-        friend_records = []
+        friend_records = list[dict]()
         self.friends[user_id] = friend_records
 
         for friend in friends:
-            friend_records.append(friend.user.id)
+            friend_records.append(self._as_friend_data(friend))
         return True
+
+    def _get_friend_record(self, friend_data: dict) -> FriendRecord | None:
+        try:
+            return FriendRecord(
+                friend_data['id'],
+                friend_data['request_counter'],
+                datetime.datetime.fromtimestamp(friend_data['access_time'], datetime.UTC)
+            )
+        except KeyError as e:
+            self._log.exception('friend data %s', json.dumps(friend_data, indent='  '), exc_info=e)
+            return None
+
+    @staticmethod
+    def _as_friend_data(friend_record: FriendRecord) -> dict:
+        return {
+            'id': friend_record.user.id,
+            'request_counter': friend_record.request_counter,
+            'access_time': friend_record.last_access_time.timestamp
+        }

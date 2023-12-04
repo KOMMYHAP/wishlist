@@ -4,6 +4,7 @@ from typing import Callable
 from telebot.callback_data import CallbackData
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from bot.handlers.listable_markup import _make_listable_markup, ListableMarkupParameters, PageNavigation
 from bot.types.MessageArgs import MessageArgs
 from wish.types.user import User
 from wish.types.wish_record import WishRecord
@@ -56,37 +57,23 @@ def _make_wishlist_title(config: WishlistRequestConfig, wishlist: list[WishRecor
 
 def _make_wishlist_markup(config: WishlistRequestConfig, wishlist: list[WishRecord],
                           wishes_per_page: int) -> InlineKeyboardMarkup:
-    keyboard = InlineKeyboardMarkup()
+    def _wish_navigation_button_factory(navigation: PageNavigation, page_idx: int) -> InlineKeyboardButton:
+        navigation_text = "←" if navigation == PageNavigation.BACK else ""
+        return InlineKeyboardButton(text=navigation_text, callback_data=config.page_navigation_factory(page_idx))
 
-    wish_id_range = range(config.current_page_idx * wishes_per_page, (config.current_page_idx + 1) * wishes_per_page)
-    for wish_idx in wish_id_range:
-        if wish_idx >= len(wishlist):
-            break
+    def _wish_button_factory(wish_idx: int, wish: WishRecord) -> InlineKeyboardButton:
+        if wish is None:
+            InlineKeyboardButton(text="+", callback_data=config.wish_factory(None))
 
-        wish_record = wishlist[wish_idx]
-        keyboard.row(InlineKeyboardButton(
-            text=f"{wish_idx + 1}. {wish_record.title}",
-            callback_data=config.wish_factory(wish_record.wish_id))
-        )
+        return InlineKeyboardButton(
+            text=f"{wish_idx + 1}. {wish.title}",
+            callback_data=config.wish_factory(wish.wish_id))
 
-    last_page_idx = max(len(wishlist) - 1, 0) // wishes_per_page
-
-    back_page_idx = config.current_page_idx - 1
-    if back_page_idx < 0:
-        back_page_idx = last_page_idx
-
-    next_page_idx = config.current_page_idx + 1
-    if next_page_idx > last_page_idx:
-        next_page_idx = 0
-
-    back_callback = config.page_navigation_factory(back_page_idx)
-    next_callback = config.page_navigation_factory(next_page_idx)
-    create_wish_callback = config.wish_factory(None)
-
-    keyboard.row(
-        InlineKeyboardButton(text="←", callback_data=back_callback),
-        InlineKeyboardButton(text="+", callback_data=create_wish_callback),
-        InlineKeyboardButton(text=f"→", callback_data=next_callback)
+    params = ListableMarkupParameters(
+        config.current_page_idx,
+        wishes_per_page,
+        wishlist,
+        _wish_navigation_button_factory,
+        _wish_button_factory,
     )
-
-    return keyboard
+    return _make_listable_markup(params)

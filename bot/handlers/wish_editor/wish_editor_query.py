@@ -4,6 +4,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import CallbackQuery, Message
 
 from bot.filters.wish_editor_query_filter import wish_editor_callback_data
+from bot.filters.wish_viewer_query_filter import wish_viewer_new_marker
 from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
 from bot.keyboards.wish_edit_keyboard import make_wish_edit_keyboard
 from bot.types.MessageArgs import MessageArgs
@@ -17,7 +18,7 @@ async def wish_editor_query(call: CallbackQuery, bot: AsyncTeleBot,
 
     callback_data: dict = wish_editor_callback_data.parse(callback_data=call.data)
     wish_id = int(callback_data['id'])
-    should_create_new_wish = wish_id < 0
+    should_create_new_wish = wish_id == wish_viewer_new_marker
 
     await bot.answer_callback_query(call.id)
     wish_draft = await state.get_wish_editor_draft(call.from_user.id)

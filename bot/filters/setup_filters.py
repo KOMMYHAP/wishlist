@@ -1,5 +1,6 @@
 from telebot.async_telebot import AsyncTeleBot
 
+from bot.filters.friend_filter import FriendCallbackFilter, FriendsListCallbackFilter
 from bot.filters.wish_creator_filter import WishCreatorCallbackFilter
 from bot.filters.wish_edit_action_filter import WishEditActionCallbackFilter
 from bot.filters.wish_editor_query_filter import WishEditorCallbackFilter
@@ -19,3 +20,5 @@ def setup_filters(bot: AsyncTeleBot) -> None:
     bot.add_custom_filter(WishViewerCallbackFilter())
     bot.add_custom_filter(WishCreatorCallbackFilter())
     bot.add_custom_filter(WishStateFilter(bot))
+    bot.add_custom_filter(FriendCallbackFilter())
+    bot.add_custom_filter(FriendsListCallbackFilter())
