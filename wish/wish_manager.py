@@ -72,9 +72,17 @@ class WishManager:
             self._log.warning('trying to reserve with which is already reserved!')
             return False
 
-        reserved_by_user_id: int | None = old_wish.reserved_by_user_id
-        if wish_viewer_draft.reserved:
+        reserved_by_user_id: int | None
+
+        if old_wish.reserved_by_user_id is None or old_wish.reserved_by_user_id == viewer_user_id and wish_viewer_draft.reserved:
+            # was reserved by viewer or by noone, make reserved by viewer
             reserved_by_user_id = viewer_user_id
+        elif old_wish.reserved_by_user_id != viewer_user_id and not wish_viewer_draft.reserved:
+            # was reserved by another user, keep reserved
+            reserved_by_user_id = old_wish.reserved_by_user_id
+        else:
+            # keep unreserved
+            reserved_by_user_id = None
 
         return await self._storage.update_wish(WishRecord(
             wish_viewer_draft.wish_id,
