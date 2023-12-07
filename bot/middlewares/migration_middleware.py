@@ -1,3 +1,4 @@
+import datetime
 from logging import Logger
 
 from telebot import SkipHandler
@@ -41,13 +42,26 @@ class MigrationMiddleware(BaseMiddleware):
             # nothing to migrate
             return True
 
+        need_update = False
+        initial_version = wishlist_user.version
+
         if wishlist_user.version == 0:
             wishlist_user.version = 1
             wishlist_user.first_name = user.first_name
             wishlist_user.last_name = user.last_name
             wishlist_user.chat_id = chat_id
-            updated = await self._wish_manager.update_user(wishlist_user)
-            if not updated:
-                self._logger.error('Failed to migrate user %s (id %d) to v1!', user.username, user.id)
-                return False
+            need_update = True
+        if wishlist_user.version == 1:
+            wishlist_user.version = 2
+            wishlist_user.wishlist_update_time = datetime.datetime.now(datetime.UTC)
+            need_update = True
+
+        if not need_update:
+            return True
+
+        updated = await self._wish_manager.update_user(wishlist_user)
+        if not updated:
+            self._logger.error('Failed to migrate user %s (id %d) from version %s!',
+                               user.username, user.id, initial_version)
+            return False
         return True

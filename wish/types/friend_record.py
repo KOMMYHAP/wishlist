@@ -9,3 +9,4 @@ class FriendRecord:
     user: User
     request_counter: int
     last_access_time: datetime
+    last_wishlist_edit_time: datetime

@@ -1,3 +1,4 @@
+import datetime
 from logging import Logger
 
 from telebot.async_telebot import AsyncTeleBot
@@ -5,9 +6,9 @@ from telebot.asyncio_helper import ApiTelegramException
 from telebot.types import CallbackQuery
 
 from bot.filters.wish_edit_action_filter import wish_edit_action_callback_data
+from bot.handlers.bot_idle_state import bot_idle_state
 from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
 from bot.handlers.wish_editor.wishlist_editor import edit_my_wishlist_editor
-from bot.handlers.bot_idle_state import bot_idle_state
 from bot.types.wish_edit_states import WishEditStates
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from wish.wish_manager import WishManager
@@ -82,6 +83,13 @@ async def _wish_apply(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: Wish
 
     await bot.set_state(call.from_user.id, bot_idle_state)
     await state.delete_wish_editor_draft(call.from_user.id)
+
+    this_user = await wish_manager.find_user_by_id(call.from_user.id)
+    if this_user is not None:
+        this_user.wishlist_update_time = datetime.datetime.now(datetime.UTC)
+        await wish_manager.update_user(this_user)
+    else:
+        logger.error("User was expired while wish is applying...")
 
     # todo: store open page id when user starts to edit wish and restore it here
     await edit_my_wishlist_editor(bot, call, logger, wish_manager, 0)

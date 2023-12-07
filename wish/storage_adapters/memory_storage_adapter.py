@@ -56,6 +56,7 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         user_data['first_name'] = user.first_name
         user_data['last_name'] = user.last_name
         user_data['chat_id'] = user.chat_id
+        user_data['wishlist_update_time'] = user.wishlist_update_time.timestamp()
         return True
 
     async def delete_user(self, user_id: int) -> bool:
@@ -74,6 +75,7 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
                 user_data.get('first_name', ''),
                 user_data.get('last_name', ''),
                 user_data.get('chat_id', 0),
+                user_data.get('wishlist_update_time', datetime.datetime.now(datetime.UTC)),
             )
         except KeyError as e:
             self._log.exception('user data %s', json.dumps(user_data, indent='  '), exc_info=e)
@@ -171,14 +173,17 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         try:
             friend_user_id = friend_data['id']
             raw_access_time = friend_data['access_time']
+            raw_wishlist_edit_time = friend_data['last_wishlist_edit_time']
             friend_user = await self.find_user_by_id(friend_user_id)
             if friend_user is None:
                 raise KeyError('id')
             friend_access_time = datetime.datetime.fromtimestamp(raw_access_time, datetime.UTC)
+            wishlist_edit_time = datetime.datetime.fromtimestamp(raw_wishlist_edit_time, datetime.UTC)
             return FriendRecord(
                 friend_user,
                 friend_data['request_counter'],
-                friend_access_time
+                friend_access_time,
+                wishlist_edit_time,
             )
         except KeyError as e:
             self._log.exception('friend data %s', json.dumps(friend_data, indent='  '), exc_info=e)
@@ -189,5 +194,6 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         return {
             'id': friend_record.user.id,
             'request_counter': friend_record.request_counter,
-            'access_time': friend_record.last_access_time.timestamp()
+            'access_time': friend_record.last_access_time.timestamp(),
+            'last_wishlist_edit_time': friend_record.last_wishlist_edit_time.timestamp()
         }

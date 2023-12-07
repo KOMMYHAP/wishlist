@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 current_user_data_version = 1
 
@@ -11,3 +12,4 @@ class User:
     first_name: str
     last_name: str
     chat_id: int
+    wishlist_update_time: datetime
