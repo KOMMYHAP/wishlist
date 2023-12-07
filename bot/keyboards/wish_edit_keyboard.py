@@ -8,8 +8,6 @@ from bot.types.wish_edit_states import WishEditStates
 def make_wish_edit_keyboard(wish_draft: WishEditorDraft) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup()
 
-    # todo: look at switch_inline_query_current_chat in InlineKeyboardButton
-
     keyboard.row(
         InlineKeyboardButton(
             text='Название',

@@ -149,7 +149,9 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
 
         friends: list[FriendRecord] = []
         for friend_data in friends_data_list:
-            friend_record = self._get_friend_record(friend_data)
+            friend_record = await self._get_friend_record(friend_data)
+            if friend_record is None:
+                continue
             friends.append(friend_record)
         return friends
 
@@ -158,19 +160,25 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         if friend_records is not None:
             self.friends.pop(user_id)
 
-        friend_records = list[dict]()
+        friend_records = []
         self.friends[user_id] = friend_records
 
         for friend in friends:
             friend_records.append(self._as_friend_data(friend))
         return True
 
-    def _get_friend_record(self, friend_data: dict) -> FriendRecord | None:
+    async def _get_friend_record(self, friend_data: dict) -> FriendRecord | None:
         try:
+            friend_user_id = friend_data['id']
+            raw_access_time = friend_data['access_time']
+            friend_user = await self.find_user_by_id(friend_user_id)
+            if friend_user is None:
+                raise KeyError('id')
+            friend_access_time = datetime.datetime.fromtimestamp(raw_access_time, datetime.UTC)
             return FriendRecord(
-                friend_data['id'],
+                friend_user,
                 friend_data['request_counter'],
-                datetime.datetime.fromtimestamp(friend_data['access_time'], datetime.UTC)
+                friend_access_time
             )
         except KeyError as e:
             self._log.exception('friend data %s', json.dumps(friend_data, indent='  '), exc_info=e)
@@ -181,5 +189,5 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
         return {
             'id': friend_record.user.id,
             'request_counter': friend_record.request_counter,
-            'access_time': friend_record.last_access_time.timestamp
+            'access_time': friend_record.last_access_time.timestamp()
         }

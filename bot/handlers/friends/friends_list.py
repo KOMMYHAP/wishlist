@@ -6,6 +6,7 @@ from telebot.types import InlineKeyboardButton
 from bot.filters.friend_filter import friend_callback_data, friends_list_callback_data, friend_new_marker
 from bot.handlers.listable_markup import PageNavigation, _make_listable_markup, ListableMarkupParameters
 from bot.types.MessageArgs import MessageArgs
+from bot.utilities.suite_symbols import SuiteSymbols
 from bot.utilities.user_fullname import get_user_fullname
 from wish.types.friend_record import FriendRecord
 from wish.wish_manager import WishManager
@@ -19,15 +20,16 @@ async def make_friends_list_args(user_id: int, wish_manager: WishManager) -> Mes
     friends_list_by_access_time = sorted(friends_list, key=lambda r: r.last_access_time, reverse=True)
 
     def _friend_navigation_button_factory(navigation: PageNavigation, page_idx: int) -> InlineKeyboardButton:
-        navigation_text = "←" if navigation == PageNavigation.BACK else ""
+        navigation_text = SuiteSymbols.ARROW_LEFT.value if navigation == PageNavigation.BACK else SuiteSymbols.ARROW_RIGHT.value
         return InlineKeyboardButton(text=navigation_text, callback_data=friends_list_callback_data.new(page_idx))
 
     def _friend_button_factory(_: int, friend: FriendRecord | None) -> InlineKeyboardButton:
         if friend is None:
-            InlineKeyboardButton(text="+", callback_data=friend_callback_data.new(id=friend_new_marker))
+            return InlineKeyboardButton(text=SuiteSymbols.PLUS.value,
+                                        callback_data=friend_callback_data.new(id=friend_new_marker))
 
         return InlineKeyboardButton(
-            text=get_user_fullname(friend.user),
+            text=get_user_fullname(friend.user, username=True),
             callback_data=friend_callback_data.new(id=friend.user.id))
 
     params = ListableMarkupParameters(
@@ -58,8 +60,8 @@ async def update_friend_record_usage(user_id: int, friend_user_id: int,
     found_friend_record = None
     for friend_record in friends_list:
         if friend_record.user.id == friend_user_id:
+            found_friend_record = friend_record
             break
-        found_friend_record = friend_record
 
     now = datetime.datetime.now(datetime.UTC)
 
@@ -67,7 +69,7 @@ async def update_friend_record_usage(user_id: int, friend_user_id: int,
         found_friend_record.request_counter += 1
         found_friend_record.last_access_time = now
     else:
-        new_friend_record = FriendRecord(user, 0, now)
+        new_friend_record = FriendRecord(user, 1, now)
         friends_list.append(new_friend_record)
 
     await wish_manager.update_friend_list(user_id, friends_list)

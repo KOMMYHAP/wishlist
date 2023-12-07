@@ -7,8 +7,6 @@ from bot.handlers.wish_viewer.wish_viewer_states import WishViewerStates
 def make_wish_view_keyboard(editor_id: int) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup()
 
-    # todo: look at switch_inline_query_current_chat in InlineKeyboardButton
-
     keyboard.add(
         InlineKeyboardButton(
             text='Зарезервировать',

@@ -40,7 +40,7 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
 
     owner_user = await wish_manager.find_user_by_id(wish.owner_id)
 
-    text = f"{get_user_fullname(owner_user)} желает:"
+    text = f"{get_user_fullname(owner_user, link=True)} хочет получить в подарок:"
     if len(wish.title) > 0:
         text += f"\nНазвание: {wish.title}"
     if len(wish.hint) > 0:
@@ -50,7 +50,7 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
     if wish.reserved_by_user_id is not None:
         reserved_by_user = await wish_manager.find_user_by_id(wish.reserved_by_user_id)
         if observer_id != wish.owner_id or wish_manager.config.allow_wish_owner_sees_reservation:
-            text += f"\nХочет подарить: {get_user_fullname(reserved_by_user)}"
+            text += f"\nХочет подарить: {get_user_fullname(reserved_by_user, username=True)}"
         else:
             text += f"\nКое-кто уже планирует подарить тебе этот подарок!"
 
@@ -60,8 +60,6 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
 
 def _make_wish_view_markup(editor_id: int, observer_id: int, wish: WishRecord) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup()
-
-    # todo: look at switch_inline_query_current_chat in InlineKeyboardButton
 
     if wish.reserved_by_user_id is None and wish.owner_id != observer_id:
         keyboard.row(InlineKeyboardButton(

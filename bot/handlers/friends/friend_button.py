@@ -13,7 +13,7 @@ from wish.wish_manager import WishManager
 
 
 class FriendAction(Enum):
-    SHOW_WISHLIST = 0,
+    SHOW_WISHLIST = 0
     DELETE = 1
 
 
@@ -32,7 +32,8 @@ async def friend_button_query(call: CallbackQuery, bot: AsyncTeleBot, wish_manag
         return
 
     markup = _make_friend_action_markup(friend_user_id)
-    await bot.send_message(call.message.chat.id, f"Пользователь {get_user_fullname(friend_user)}", reply_markup=markup)
+    fullname = get_user_fullname(friend_user, fullname=True, link=True)
+    await bot.send_message(call.message.chat.id, f"Пользователь {fullname}", reply_markup=markup)
 
 
 async def friend_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
@@ -49,7 +50,7 @@ async def friend_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_manag
         await _remove_friend(bot, call, friend_user_id, wish_manager)
 
 
-async def _remove_friend(bot, call, friend_user_id, wish_manager):
+async def _remove_friend(bot: AsyncTeleBot, call: CallbackQuery, friend_user_id: int, wish_manager: WishManager):
     user_id = call.from_user.id
     friend_list = await wish_manager.get_friend_list(user_id)
     filtered_list = [x for x in friend_list if x.user.id != friend_user_id]

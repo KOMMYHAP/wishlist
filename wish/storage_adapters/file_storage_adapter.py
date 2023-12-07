@@ -89,7 +89,7 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
                     self._memory_storage.users[int(key)] = value
                 if root_data.get('friends') is not None:
                     for key, value in root_data['friends'].items():
-                        self._memory_storage.users[int(key)] = value
+                        self._memory_storage.friends[int(key)] = value
                 self._memory_storage.next_wish_id = root_data.get('next_wish_id', self._initial_wish_id)
         except FileNotFoundError:
             self._logger.debug('File %s was not found', self._filename)

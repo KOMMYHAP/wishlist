@@ -37,5 +37,5 @@ async def _remove_wish(bot: AsyncTeleBot, wish_manager: WishManager, wish_id: in
         owner = await wish_manager.find_user_by_id(wish.owner_id)
         await bot.send_message(
             reserved_by_user.chat_id,
-            f"Пользователь {get_user_fullname(owner)} удалил желание '{wish.title}', которое ты хочешь исполнить!")
+            f"Пользователь {get_user_fullname(owner, username=True)} удалил желание '{wish.title}', которое ты хочешь исполнить!")
     await wish_manager.remove_wish(owner_id, wish_id)
