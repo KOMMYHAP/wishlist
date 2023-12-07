@@ -36,7 +36,7 @@ async def generator_entry_point() -> None:
 
     wishlist_config = WishlistConfig(
         args.wishes_per_page,
-        args.allow_wish_owner_see_reservation,
+        args.allow_wish_owner_sees_reservation,
         args.allow_user_sees_owned_wishlist,
         args.initial_wish_id,
         args.friends_count_on_page
