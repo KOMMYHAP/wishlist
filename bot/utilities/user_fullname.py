@@ -6,18 +6,27 @@ def get_user_fullname(user: User | None, fullname: bool = False, link: bool = Fa
     if not user:
         return "<unknown user>"
 
+    if len(user.username) == 0:
+        link = False
+        username = False
+
     if not link and not username:
         fullname = True
 
-    if user.version == 0:
-        # fullname is unavailable for 0 version
-        fullname = False
-        link = False
+    if link and username:
         username = True
+
+    if user.version == 0:
+        fullname = True
+        link = False
+        username = False
 
     _link = f"{telegram_user_link}{user.username}" if link else ""
     _username = f"@{user.username}" if username else ""
-    _fullname = f"{user.first_name} {user.last_name}"
+    if user.first_name and len(user.last_name) > 0:
+        _fullname = f"{user.first_name} {user.last_name}"
+    else:
+        _fullname = f"{user.first_name}"
 
     if fullname:
         if link:
