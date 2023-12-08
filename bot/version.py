@@ -47,5 +47,5 @@ def get_update_message(user_version: int) -> str | None:
     if user_version >= current_bot_version:
         return None
     return ("\n\n".join(_update_message_list[user_version:]) +
-            "\n\n" + _todo_message +
-            "\n\n" + _update_message_footer)
+            # "\n\n" + _todo_message +
+            "\n" + _update_message_footer)
