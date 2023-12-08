@@ -2,7 +2,6 @@ from telebot.asyncio_filters import AdvancedCustomFilter
 from telebot.callback_data import CallbackData, CallbackDataFilter
 from telebot.types import CallbackQuery
 
-friend_new_marker = -1
 friend_callback_data = CallbackData("id", prefix="friend")
 friends_list_callback_data = CallbackData("page_id", prefix="friends_list")
 friend_action_callback_data = CallbackData("action_id", "friend_id", prefix="friend_action")

@@ -44,6 +44,8 @@ async def friend_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_manag
     action_id = int(callback_data['action_id'])
     friend_user_id = int(callback_data['friend_id'])
 
+    await bot.answer_callback_query(call.id)
+
     if action_id == FriendAction.SHOW_WISHLIST.value:
         await _friend_show_wishlist(bot, call, friend_user_id, logger, wish_manager)
     elif action_id == FriendAction.DELETE.value:

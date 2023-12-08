@@ -3,7 +3,7 @@ from enum import Enum
 
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from bot.filters.friend_filter import friend_callback_data, friends_list_callback_data, friend_new_marker
+from bot.filters.friend_filter import friend_callback_data, friends_list_callback_data
 from bot.handlers.listable_markup import PageNavigation, _make_listable_markup, ListableMarkupParameters
 from bot.types.MessageArgs import MessageArgs
 from bot.utilities.suite_symbols import SuiteSymbols
@@ -23,10 +23,9 @@ def make_friends_list_markup(friends_list: list[FriendRecord],
         navigation_text = SuiteSymbols.ARROW_LEFT.value if navigation == PageNavigation.BACK else SuiteSymbols.ARROW_RIGHT.value
         return InlineKeyboardButton(text=navigation_text, callback_data=friends_list_callback_data.new(page_idx))
 
-    def _friend_button_factory(_: int, friend: FriendRecord | None) -> InlineKeyboardButton:
+    def _friend_button_factory(_: int, friend: FriendRecord | None) -> InlineKeyboardButton | None:
         if friend is None:
-            return InlineKeyboardButton(text=SuiteSymbols.PLUS.value,
-                                        callback_data=friend_callback_data.new(id=friend_new_marker))
+            return None
 
         return InlineKeyboardButton(
             text=get_user_fullname(friend.user, username=True),
