@@ -32,7 +32,7 @@ async def friend_button_query(call: CallbackQuery, bot: AsyncTeleBot, wish_manag
         return
 
     markup = _make_friend_action_markup(friend_user_id)
-    fullname = get_user_fullname(friend_user, fullname=True, link=True)
+    fullname = get_user_fullname(friend_user, fullname=True, username=True)
     await bot.send_message(call.message.chat.id, f"Пользователь {fullname}", reply_markup=markup)
 
 

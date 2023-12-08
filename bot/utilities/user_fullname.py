@@ -7,14 +7,13 @@ def get_user_fullname(user: User | None, fullname: bool = False, link: bool = Fa
         return "<unknown user>"
 
     if not link and not username:
-        # enable at least one option
-        if user.version == 0:
-            # fullname is unavailable for 0 version
-            fullname = False
-            link = False
-            username = True
-        else:
-            fullname = True
+        fullname = True
+
+    if user.version == 0:
+        # fullname is unavailable for 0 version
+        fullname = False
+        link = False
+        username = True
 
     _link = f"{telegram_user_link}{user.username}" if link else ""
     _username = f"@{user.username}" if username else ""

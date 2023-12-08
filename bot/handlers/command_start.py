@@ -1,3 +1,4 @@
+import datetime
 from logging import Logger
 
 from telebot.async_telebot import AsyncTeleBot
@@ -13,7 +14,7 @@ async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manage
     logger = logger.getChild('start_command')
     message_sender = message.from_user
     user = User(current_user_data_version, message_sender.id, message_sender.username, message_sender.first_name,
-                message_sender.last_name, message.chat.id)
+                message_sender.last_name, message.chat.id, datetime.datetime.fromtimestamp(0, datetime.UTC))
 
     bot_commands: list[BotCommand] = []
     for wishlist_command in WishlistCommands:

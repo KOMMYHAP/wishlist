@@ -40,7 +40,7 @@ async def wish_viewer_query(call: CallbackQuery, bot: AsyncTeleBot,
 
     owner_user = await wish_manager.find_user_by_id(wish.owner_id)
 
-    text = f"{get_user_fullname(owner_user, link=True)} хочет получить в подарок:"
+    text = f"{get_user_fullname(owner_user, username=True)} хочет получить в подарок:"
     if len(wish.title) > 0:
         text += f"\nНазвание: {wish.title}"
     if len(wish.hint) > 0:

@@ -43,7 +43,7 @@ def _make_wishlist_title(config: WishlistRequestConfig, wishlist: list[WishRecor
     empty_wishlist = len(wishlist) == 0
 
     if config.sender.id != config.target.id:
-        text = f"Список желаний от {get_user_fullname(config.target, fullname=True, link=True)}"
+        text = f"Список желаний от {get_user_fullname(config.target, fullname=True, username=True)}"
         if empty_wishlist:
             text += "\nПользователь еще не добавил желания"
     else:
