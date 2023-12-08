@@ -29,11 +29,11 @@ class WishManager:
         self.config = config
 
     async def find_user_by_id(self, user_id: int) -> User | None:
-        self._log.debug('find_username(%d)', user_id)
+        self._log.debug('find_user_by_id(%d)', user_id)
         return await self._storage.find_user_by_id(user_id)
 
     async def find_user_by_name(self, user_name: str) -> User | None:
-        self._log.debug('find_user_id(%s)', user_name)
+        self._log.debug('find_user_by_name(%s)', user_name)
         return await self._storage.find_user_by_name(user_name)
 
     async def get_wish(self, wish_id: int) -> WishRecord | None:
@@ -41,7 +41,7 @@ class WishManager:
         return await self._storage.get_wish(wish_id)
 
     async def update_wish_by_editor(self, editor_user_id: int, wish_draft: WishEditorDraft) -> bool:
-        self._log.debug('update_wish(%d, %s)', editor_user_id, str(wish_draft))
+        self._log.debug('update_wish_by_editor(%d, %s)', editor_user_id, str(wish_draft))
         old_wish = await self.get_wish(wish_draft.wish_id)
         if old_wish is None:
             self._log.error('wish %d was not found to update!', wish_draft.wish_id)
@@ -60,7 +60,7 @@ class WishManager:
         ))
 
     async def update_wish_by_viewer(self, viewer_user_id: int, wish_viewer_draft: WishViewerDraft) -> bool:
-        self._log.debug('update_wish(%d, %s)', viewer_user_id, str(wish_viewer_draft))
+        self._log.debug('update_wish_viewer(%d, %s)', viewer_user_id, str(wish_viewer_draft))
         old_wish = await self.get_wish(wish_viewer_draft.wish_id)
         if old_wish is None:
             self._log.error('wish %d was not found to update!', wish_viewer_draft.wish_id)
