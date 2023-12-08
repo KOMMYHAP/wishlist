@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-current_user_data_version = 1
-
 
 @dataclass
 class User:
