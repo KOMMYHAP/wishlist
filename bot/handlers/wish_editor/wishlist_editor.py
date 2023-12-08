@@ -46,7 +46,7 @@ async def _make_editor_config(logger: Logger, wish_manager: WishManager, sender_
 
     config = WishlistRequestConfig(sender, sender, page_idx,
                                    _my_wishlist_page_navigation_factory,
-                                   _wish_editor_callback_factory)
+                                   _wish_editor_callback_factory, True)
     request = await make_wishlist_request(config, wish_manager)
     if request is None:
         logger.error("Cannot find user's wishlist by user id %d", sender_id)

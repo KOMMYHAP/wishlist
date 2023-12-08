@@ -25,7 +25,7 @@ class ListableMarkupParameters:
     items_per_page: int
     items: Item
     page_navigation_factory: ItemPageCallbackDataFactory
-    item_button_factory: ItemButtonFactory
+    item_button_factory: ItemButtonFactory | None
 
 
 def _make_listable_markup(params: ListableMarkupParameters) -> InlineKeyboardMarkup:
@@ -51,9 +51,16 @@ def _make_listable_markup(params: ListableMarkupParameters) -> InlineKeyboardMar
     if next_page_idx > last_page_idx:
         next_page_idx = 0
 
-    back_button = params.page_navigation_factory(PageNavigation.BACK, back_page_idx)
-    next_button = params.page_navigation_factory(PageNavigation.NEXT, next_page_idx)
-    create_item_button = params.item_button_factory(-1, None)
+    buttons = []
+    if params.current_page_idx != back_page_idx:
+        back_button = params.page_navigation_factory(PageNavigation.BACK, back_page_idx)
+        buttons.append(back_button)
+    create_button = params.item_button_factory(-1, None)
+    if create_button:
+        buttons.append(create_button)
+    if params.current_page_idx != next_page_idx:
+        next_button = params.page_navigation_factory(PageNavigation.NEXT, next_page_idx)
+        buttons.append(next_button)
 
-    keyboard.row(back_button, create_item_button, next_button)
+    keyboard.row(*buttons)
     return keyboard

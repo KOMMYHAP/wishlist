@@ -26,6 +26,7 @@ class WishlistRequestConfig:
     current_page_idx: int
     page_navigation_factory: WishlistPageCallbackDataFactory
     wish_factory: WishCallbackDataFactory
+    need_create_button: bool
 
 
 async def make_wishlist_request(config: WishlistRequestConfig, wish_manager: WishManager) -> MessageArgs | None:
@@ -34,7 +35,7 @@ async def make_wishlist_request(config: WishlistRequestConfig, wish_manager: Wis
     if response.owner is None or response.owner.id != config.target.id:
         return
     text = _make_wishlist_title(config, response.wishlist, wishes_per_page)
-    markup = _make_wishlist_markup(config, response.wishlist, wishes_per_page)
+    markup = _make_wishlist_markup(config, response.wishlist, wishes_per_page, config.need_create_button)
     return MessageArgs(text, markup)
 
 
@@ -58,14 +59,16 @@ def _make_wishlist_title(config: WishlistRequestConfig, wishlist: list[WishRecor
 
 
 def _make_wishlist_markup(config: WishlistRequestConfig, wishlist: list[WishRecord],
-                          wishes_per_page: int) -> InlineKeyboardMarkup:
+                          wishes_per_page: int, need_create_button: bool) -> InlineKeyboardMarkup:
     def _wish_navigation_button_factory(navigation: PageNavigation, page_idx: int) -> InlineKeyboardButton:
         navigation_text = SuiteSymbols.ARROW_LEFT.value if navigation == PageNavigation.BACK else SuiteSymbols.ARROW_RIGHT.value
         return InlineKeyboardButton(text=navigation_text, callback_data=config.page_navigation_factory(page_idx))
 
-    def _wish_button_factory(wish_idx: int, wish: WishRecord) -> InlineKeyboardButton:
+    def _wish_button_factory(wish_idx: int, wish: WishRecord) -> InlineKeyboardButton | None:
         if wish is None:
-            return InlineKeyboardButton(text=SuiteSymbols.PLUS.value, callback_data=config.wish_factory(None))
+            if need_create_button:
+                return InlineKeyboardButton(text=SuiteSymbols.PLUS.value, callback_data=config.wish_factory(None))
+            return None
 
         return InlineKeyboardButton(
             text=f"{wish_idx + 1}. {wish.title}",

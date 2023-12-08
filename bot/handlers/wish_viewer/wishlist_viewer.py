@@ -61,7 +61,7 @@ async def _make_viewer_config(logger: Logger, wish_manager: WishManager, sender_
 
     config = WishlistRequestConfig(sender, target, current_page_idx,
                                    _page_navigation_factory,
-                                   _wish_factory)
+                                   _wish_factory, False)
     request = await make_wishlist_request(config, wish_manager)
     if request is None:
         logger.error("Cannot find user's wishlist by user id %d", sender_id)
