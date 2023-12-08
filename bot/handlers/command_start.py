@@ -23,7 +23,7 @@ async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manage
     await bot.set_my_commands(bot_commands)
 
     new_user_created = await wish_manager.register_user(user)
-    if new_user_created or True:
+    if new_user_created:
         hello_world_message = f"""Привет, {user.first_name} {user.last_name}!
         
 Если ты хочешь получить в подарок что-то действительно нужное...
