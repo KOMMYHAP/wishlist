@@ -19,7 +19,7 @@ def make_friends_list_markup(friends_list: list[FriendRecord],
     if len(friends_list) == 0:
         return None
 
-    friends_list_by_access_time = sorted(friends_list, key=lambda r: r.last_access_time)
+    friends_list_by_access_time = sorted(friends_list, key=lambda r: r.last_access_time, reverse=True)
 
     def _friend_navigation_button_factory(navigation: PageNavigation, page_idx: int) -> InlineKeyboardButton:
         navigation_text = SuiteSymbols.ARROW_LEFT.value if navigation == PageNavigation.BACK else SuiteSymbols.ARROW_RIGHT.value
