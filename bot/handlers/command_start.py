@@ -4,6 +4,7 @@ from logging import Logger
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
+from bot.handlers.command_registry import WishlistCommands
 from bot.handlers.wish_editor.wishlist_editor import send_my_wishlist_editor
 from bot.utilities.user_fullname import get_user_fullname
 from bot.version import current_bot_version
@@ -28,20 +29,16 @@ async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manage
     await send_my_wishlist_editor(logger, message, bot, wish_manager, 0)
 
 
-_start_message = """Если ты хочешь получить в подарок что-то действительно нужное...
+_start_message = f"""Если ты хочешь получить в подарок что-то действительно нужное...
 Если тебя пригласили на день рождения, но ты не знаешь что подарить имениннику...
 Если у человека вроде как всё есть и уже не осталось идей...
 
 ... то я постараюсь помочь тебе!  
 
-Я могу показать тебе список желаний человека (/{WishlistCommands.USER_WISHLIST.value}).
-Ты можешь создать свой список желаний (/{WishlistCommands.MY_WISHLIST.value}), чтобы помочь другим людям выбрать и тебе качественный подарок.
-Также ты можешь следить за обновлением списка желаний своих друзей (/{WishlistCommands.GET_UPDATES.value}).
-
-ВНИМАНИЕ. 
-Я НАХОЖУСЬ В АКТИВНОЙ РАЗРАБОТКЕ. 
-БАГИ, ЗАВИСАНИЯ, НЕУДОБСТВА, ПОТЕРЯ ДАННЫХ - ВСЁ ЭТО МОИ ЛУЧШИЕ ДРУЗЬЯ.
+Я могу показать тебе список желаний человека /{WishlistCommands.USER_WISHLIST.value}.
+Ты можешь создать свой список желаний /{WishlistCommands.MY_WISHLIST.value}, чтобы помочь другим людям выбрать и тебе качественный подарок.
+Также ты можешь следить за обновлением списка желаний своих друзей /{WishlistCommands.GET_UPDATES.value}.
 
 Большое вам спасибо, что помогаете делать меня лучше.
-Со всем пожеланиями, идеями, баг-репортами вы можете обращаться непосредственно к моему разработчику: @polyakov_white 
+Со всем пожеланиями, идеями, баг-репортами вы можете обращаться непосредственно к моему разработчику: @polyakov_white.
 """
