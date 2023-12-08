@@ -4,9 +4,10 @@ from logging import Logger
 from telebot import SkipHandler
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_handler_backends import BaseMiddleware
-from telebot.types import Message, CallbackQuery
+from telebot.types import Message, CallbackQuery, BotCommand
 from telebot.types import User as TelegramUser
 
+from bot.handlers.command_registry import WishlistCommands, get_command_description
 from bot.version import get_update_message
 from wish.types.user import User as WishUser
 from wish.wish_manager import WishManager
@@ -62,11 +63,21 @@ class MigrationMiddleware(BaseMiddleware):
                                user.username, user.id, initial_version)
             return False
 
+        await self._print_update_messages(chat_id, initial_version)
+        await self._update_commands_list()
+        return True
+
+    async def _print_update_messages(self, chat_id, initial_version):
         update_message = get_update_message(initial_version)
         if update_message:
             await self._bot.send_message(chat_id, update_message)
 
-        return True
+    async def _update_commands_list(self):
+        bot_commands: list[BotCommand] = []
+        for wishlist_command in WishlistCommands:
+            bot_commands.append(
+                BotCommand(command=wishlist_command.value, description=get_command_description(wishlist_command)))
+        await self._bot.set_my_commands(bot_commands)
 
     @staticmethod
     def _migrate_to_v1(chat_id: int, user: TelegramUser, wishlist_user: WishUser):

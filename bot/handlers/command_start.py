@@ -2,9 +2,9 @@ import datetime
 from logging import Logger
 
 from telebot.async_telebot import AsyncTeleBot
-from telebot.types import BotCommand, Message
+from telebot.types import Message
 
-from bot.handlers.command_registry import WishlistCommands, get_command_description
+from bot.handlers.command_registry import WishlistCommands
 from bot.handlers.wish_editor.wishlist_editor import send_my_wishlist_editor
 from wish.types.user import User, current_user_data_version
 from wish.wish_manager import WishManager
@@ -15,12 +15,6 @@ async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manage
     message_sender = message.from_user
     user = User(current_user_data_version, message_sender.id, message_sender.username, message_sender.first_name,
                 message_sender.last_name, message.chat.id, datetime.datetime.fromtimestamp(0, datetime.UTC))
-
-    bot_commands: list[BotCommand] = []
-    for wishlist_command in WishlistCommands:
-        bot_commands.append(
-            BotCommand(command=wishlist_command.value, description=get_command_description(wishlist_command)))
-    await bot.set_my_commands(bot_commands)
 
     new_user_created = await wish_manager.register_user(user)
     if new_user_created:
