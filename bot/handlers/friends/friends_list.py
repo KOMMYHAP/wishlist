@@ -1,7 +1,9 @@
 import datetime
 from enum import Enum
+from logging import Logger
 
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+from telebot.async_telebot import AsyncTeleBot
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 
 from bot.filters.friend_filter import friend_callback_data, friends_list_callback_data
 from bot.handlers.listable_markup import PageNavigation, _make_listable_markup, ListableMarkupParameters
@@ -13,7 +15,7 @@ from wish.wish_manager import WishManager
 
 
 def make_friends_list_markup(friends_list: list[FriendRecord],
-                             friends_count_on_page: int) -> InlineKeyboardMarkup | None:
+                             friends_count_on_page: int, current_page_idx: int = 0) -> InlineKeyboardMarkup | None:
     if len(friends_list) == 0:
         return None
 
@@ -21,7 +23,8 @@ def make_friends_list_markup(friends_list: list[FriendRecord],
 
     def _friend_navigation_button_factory(navigation: PageNavigation, page_idx: int) -> InlineKeyboardButton:
         navigation_text = SuiteSymbols.ARROW_LEFT.value if navigation == PageNavigation.BACK else SuiteSymbols.ARROW_RIGHT.value
-        return InlineKeyboardButton(text=navigation_text, callback_data=friends_list_callback_data.new(page_idx))
+        return InlineKeyboardButton(text=navigation_text,
+                                    callback_data=friends_list_callback_data.new(page_id=page_idx))
 
     def _friend_button_factory(_: int, friend: FriendRecord | None) -> InlineKeyboardButton | None:
         if friend is None:
@@ -32,7 +35,7 @@ def make_friends_list_markup(friends_list: list[FriendRecord],
             callback_data=friend_callback_data.new(id=friend.user.id))
 
     params = ListableMarkupParameters(
-        0,
+        current_page_idx,
         friends_count_on_page,
         friends_list_by_access_time,
         _friend_navigation_button_factory,
@@ -42,9 +45,9 @@ def make_friends_list_markup(friends_list: list[FriendRecord],
     return _make_listable_markup(params)
 
 
-async def make_friends_list_args(user_id: int, wish_manager: WishManager) -> MessageArgs:
+async def make_friends_list_args(user_id: int, wish_manager: WishManager, current_page_idx: int = 0) -> MessageArgs:
     friends_list = await wish_manager.get_friend_list(user_id)
-    markup = make_friends_list_markup(friends_list, wish_manager.config.wishes_per_page)
+    markup = make_friends_list_markup(friends_list, wish_manager.config.wishes_per_page, current_page_idx)
     if markup is None:
         return MessageArgs('Введи имя пользователя или ссылку на него', None)
     return MessageArgs('Введи имя пользователя или выбери из списка недавних:', markup)
@@ -83,3 +86,15 @@ async def update_friend_record_usage(user_id: int, friend_user_id: int,
     await wish_manager.update_friend_list(user_id, friends_list)
 
     return FriendDataUpdateResult.ADDED
+
+
+async def friends_list_navigation_query(call: CallbackQuery, bot: AsyncTeleBot, wish_manager: WishManager,
+                                        logger: Logger) -> None:
+    _ = logger.getChild('friends_list_navigation_query')
+    await bot.answer_callback_query(call.id)
+
+    callback_data: dict = friends_list_callback_data.parse(callback_data=call.data)
+    friends_list_page_idx = int(callback_data['page_id'])
+
+    args = await make_friends_list_args(call.from_user.id, wish_manager, friends_list_page_idx)
+    await bot.edit_message_text(args.text, call.message.chat.id, call.message.message_id, reply_markup=args.markup)
