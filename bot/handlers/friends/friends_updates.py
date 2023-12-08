@@ -1,3 +1,4 @@
+import datetime
 from enum import Enum
 
 from telebot.async_telebot import AsyncTeleBot
@@ -28,6 +29,7 @@ async def command_get_updates_handler(message: Message, bot: AsyncTeleBot, wish_
 
     if status == FriendUpdateStatus.NO_UPDATES:
         await bot.send_message(message.chat.id, "Обновлений не найдено")
+        return
 
     markup = make_friends_list_markup(updates, wish_manager.config.friends_count_on_page)
     await bot.send_message(message.chat.id, "Следующие пользователи обновили свой список желаний:", reply_markup=markup)
@@ -40,6 +42,8 @@ async def _get_updates(user_id: int, wish_manager: WishManager) -> (FriendUpdate
 
     updated_friend_records = []
     for friend_record in friend_list:
+        if friend_record.user.wishlist_update_time == datetime.datetime.fromtimestamp(0, datetime.UTC):
+            continue
         if friend_record.user.wishlist_update_time <= friend_record.last_wishlist_edit_time:
             continue
         updated_friend_records.append(friend_record)

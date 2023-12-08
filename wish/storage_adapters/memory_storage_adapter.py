@@ -75,7 +75,7 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
                 user_data.get('first_name', ''),
                 user_data.get('last_name', ''),
                 user_data.get('chat_id', 0),
-                user_data.get('wishlist_update_time', datetime.datetime.now(datetime.UTC)),
+                user_data.get('wishlist_update_time', datetime.datetime.fromtimestamp(0, datetime.UTC)),
             )
         except KeyError as e:
             self._log.exception('user data %s', json.dumps(user_data, indent='  '), exc_info=e)
