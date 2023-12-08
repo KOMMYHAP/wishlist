@@ -14,5 +14,5 @@ def setup_middlewares(bot: AsyncTeleBot, logger: Logger, state_adapter: StateBas
     bot.setup_middleware(LoggerMiddleware(logger))
     bot.setup_middleware(StateAdapterMiddleware(state_adapter))
     bot.setup_middleware(WishMiddleware(wish_manager))
-    bot.setup_middleware(MigrationMiddleware(wish_manager, logger))
+    bot.setup_middleware(MigrationMiddleware(wish_manager, logger, bot))
     pass

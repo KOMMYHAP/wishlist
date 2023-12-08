@@ -29,6 +29,7 @@ async def entry_point() -> None:
     parser.add_argument('--allow-user-sees-owned-wishlist', type=bool, default=False, required=False)
     parser.add_argument('--initial-wish-id', type=int, default=1000, required=False)
     parser.add_argument('--friends-count-on-page', type=int, default=5, required=False)
+    parser.add_argument('--version-file', required=False)
     args = parser.parse_args()
 
     wishlist_config = WishlistConfig(

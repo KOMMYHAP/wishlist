@@ -2,21 +2,26 @@ import datetime
 from logging import Logger
 
 from telebot import SkipHandler
+from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_handler_backends import BaseMiddleware
-from telebot.types import Message, User, CallbackQuery
+from telebot.types import Message, CallbackQuery
+from telebot.types import User as TelegramUser
 
+from bot.version import get_update_message
+from wish.types.user import User as WishUser
 from wish.wish_manager import WishManager
 
 
 class MigrationMiddleware(BaseMiddleware):
-    def __init__(self, wish_manager: WishManager, logger: Logger):
+    def __init__(self, wish_manager: WishManager, logger: Logger, bot: AsyncTeleBot):
         super().__init__()
         self._wish_manager = wish_manager
         self._logger = logger.getChild('migration')
+        self._bot = bot
         self.update_types = ['message', 'callback_query']
 
     async def pre_process(self, message, data):
-        user: User
+        user: TelegramUser
         chat_id: int
         if isinstance(message, Message):
             user = message.from_user
@@ -36,7 +41,7 @@ class MigrationMiddleware(BaseMiddleware):
     async def post_process(self, message, data, exception):
         pass
 
-    async def _migrate_user_data(self, user: User, chat_id: int) -> bool:
+    async def _migrate_user_data(self, user: TelegramUser, chat_id: int) -> bool:
         wishlist_user = await self._wish_manager.find_user_by_id(user.id)
         if wishlist_user is None:
             # nothing to migrate
@@ -45,16 +50,8 @@ class MigrationMiddleware(BaseMiddleware):
         need_update = False
         initial_version = wishlist_user.version
 
-        if wishlist_user.version == 0:
-            wishlist_user.version = 1
-            wishlist_user.first_name = user.first_name
-            wishlist_user.last_name = user.last_name
-            wishlist_user.chat_id = chat_id
-            need_update = True
-        if wishlist_user.version == 1:
-            wishlist_user.version = 2
-            wishlist_user.wishlist_update_time = datetime.datetime.now(datetime.UTC)
-            need_update = True
+        need_update |= self._migrate_to_v1(chat_id, user, wishlist_user)
+        need_update |= self._migrate_to_v2(wishlist_user)
 
         if not need_update:
             return True
@@ -64,4 +61,27 @@ class MigrationMiddleware(BaseMiddleware):
             self._logger.error('Failed to migrate user %s (id %d) from version %s!',
                                user.username, user.id, initial_version)
             return False
+
+        update_message = get_update_message(initial_version)
+        if update_message:
+            await self._bot.send_message(chat_id, update_message)
+
+        return True
+
+    @staticmethod
+    def _migrate_to_v1(chat_id: int, user: TelegramUser, wishlist_user: WishUser):
+        if wishlist_user.version != 0:
+            return False
+        wishlist_user.version = 1
+        wishlist_user.first_name = user.first_name
+        wishlist_user.last_name = user.last_name
+        wishlist_user.chat_id = chat_id
+        return True
+
+    @staticmethod
+    def _migrate_to_v2(wishlist_user: WishUser):
+        if wishlist_user.version != 1:
+            return False
+        wishlist_user.version = 2
+        wishlist_user.wishlist_update_time = datetime.datetime.now(datetime.UTC)
         return True
