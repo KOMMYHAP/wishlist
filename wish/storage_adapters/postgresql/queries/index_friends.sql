@@ -1,0 +1,1 @@
+CREATE INDEX user_id_friends_index ON friends(user_id)
