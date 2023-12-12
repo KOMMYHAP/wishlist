@@ -5,7 +5,7 @@ import logging
 from asyncio import WindowsSelectorEventLoopPolicy
 from logging import Logger
 
-from wish.storage_adapters.postgresql.postgresql_storage_adapter import PostgresqlStorageAdapter
+from wish.storage_adapters.postgresql.postgres_storage_adapter import PostgresStorageAdapter
 from wish.types.user import User
 
 
@@ -29,7 +29,7 @@ async def postgresql_tests_entry_point() -> None:
     con = f"dbname={dbname} user={user} password={password}"
     logger = Logger.root
 
-    adapter = PostgresqlStorageAdapter("wishlist-tests", con, queries_directory, logger)
+    adapter = PostgresStorageAdapter("wishlist-tests", con, queries_directory, logger)
 
     now = datetime.datetime.now(datetime.UTC)
     user = User(1, 42, 'username', 'first_name', 'last_name', 10, now)

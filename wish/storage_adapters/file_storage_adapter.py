@@ -70,11 +70,26 @@ class WishStorageFileAdapter(WishStorageBaseAdapter):
     async def get_friend_list(self, user_id: int) -> list[FriendRecord]:
         return await self._memory_storage.get_friend_list(user_id)
 
-    async def update_friend_list(self, user_id: int, friends: list[FriendRecord]) -> bool:
-        result = await self._memory_storage.update_friend_list(user_id, friends)
-        if result:
+    async def remove_friend(self, user_id: int, friend_id: int) -> bool:
+        removed = await self._memory_storage.remove_friend(user_id, friend_id)
+        if removed:
             self._store_to_file()
-        return result
+        return removed
+
+    async def update_friend(self, user_id: int, friend_record: FriendRecord) -> bool:
+        updated = await self._memory_storage.update_friend(user_id, friend_record)
+        if updated:
+            self._store_to_file()
+        return updated
+
+    async def create_friend(self, user_id: int, friend_record: FriendRecord) -> bool:
+        created = await self._memory_storage.create_friend(user_id, friend_record)
+        if created:
+            self._store_to_file()
+        return created
+
+    async def find_user_friend_by_id(self, user_id: int, friend_id: int) -> FriendRecord | None:
+        return await self._memory_storage.find_user_friend_by_id(user_id, friend_id)
 
     def _load_from_file(self):
         try:

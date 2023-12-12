@@ -1,0 +1,1 @@
+DELETE FROM friends WHERE user_id = (%(user_id)s and friend_id = (%(friend_id)s;

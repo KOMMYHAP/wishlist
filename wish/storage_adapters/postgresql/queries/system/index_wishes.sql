@@ -1,0 +1,1 @@
+CREATE INDEX wish_owners_index ON wishes(owner_id)

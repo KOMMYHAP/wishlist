@@ -172,7 +172,23 @@ class WishManager:
         self._log.debug('get_friend_list(%s)', str(user_id))
         return await self._storage.get_friend_list(user_id)
 
-    async def update_friend_list(self, user_id: int, friends: list[FriendRecord]) -> bool:
-        updated = await self._storage.update_friend_list(user_id, friends)
-        self._log.debug('update_friend_list(%s, %s) -> %s', str(user_id), str(friends), str(updated))
+    async def find_user_friend_by_id(self, user_id: int, friend_id: int) -> FriendRecord:
+        self._log.debug('get_friend_list(%s)', str(user_id))
+        return await self._storage.find_user_friend_by_id(user_id, friend_id)
+
+    async def remove_friend(self, user_id: int, friend_id: int) -> bool:
+        removed = await self._storage.remove_friend(user_id, friend_id)
+        self._log.debug('remove_friend(%d, %d) -> %s', user_id, friend_id, str(removed))
+        return removed
+
+    async def update_friend(self, user_id: int, friend_record: FriendRecord) -> bool:
+        updated = await self._storage.update_friend(user_id, friend_record)
+        self._log.debug('update_friend(%d, %s) -> %s', user_id, str(friend_record), str(updated))
         return updated
+
+    async def create_friend(self, user_id: int, friend_record: FriendRecord) -> bool:
+        if user_id == friend_record.user.id:
+            return False
+        created = await self._storage.create_friend(user_id, friend_record)
+        self._log.debug('create_friend(%d, %s) -> %s', user_id, str(friend_record), str(created))
+        return created

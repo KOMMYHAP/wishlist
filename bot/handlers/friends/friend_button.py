@@ -54,9 +54,7 @@ async def friend_action_query(call: CallbackQuery, bot: AsyncTeleBot, wish_manag
 
 async def _remove_friend(bot: AsyncTeleBot, call: CallbackQuery, friend_user_id: int, wish_manager: WishManager):
     user_id = call.from_user.id
-    friend_list = await wish_manager.get_friend_list(user_id)
-    filtered_list = [x for x in friend_list if x.user.id != friend_user_id]
-    await wish_manager.update_friend_list(user_id, filtered_list)
+    await wish_manager.remove_friend(user_id, friend_user_id)
     message_args = await make_friends_list_args(user_id, wish_manager)
     await bot.send_message(call.message.chat.id, message_args.text, reply_markup=message_args.markup)
 

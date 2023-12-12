@@ -51,5 +51,17 @@ class WishStorageBaseAdapter(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def update_friend_list(self, user_id: int, friends: list[FriendRecord]) -> bool:
+    async def remove_friend(self, user_id: int, friend_id: int) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def update_friend(self, user_id: int, friend_record: FriendRecord) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def create_friend(self, user_id: int, friend_record: FriendRecord) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def find_user_friend_by_id(self, user_id: int, friend_id: int) -> FriendRecord | None:
         raise NotImplementedError
