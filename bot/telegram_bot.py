@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import argparse
+import asyncio
 import logging
+from asyncio import WindowsSelectorEventLoopPolicy
 
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
@@ -75,3 +77,8 @@ async def entry_point() -> None:
     setup_handlers(bot)
 
     await bot.polling(non_stop=True)
+
+
+if __name__ == '__main__':
+    asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
+    asyncio.run(entry_point())
