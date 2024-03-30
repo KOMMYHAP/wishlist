@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import logging
+from asyncio import WindowsSelectorEventLoopPolicy
 
 from wish.migration.migration_to_postgresql import perform_migration
 from wish.storage_adapters.file_storage_adapter import WishStorageFileAdapter
@@ -19,7 +20,8 @@ async def entry_point() -> None:
 
     root_logger = logging.getLogger()
 
-    file_storage = WishStorageFileAdapter(args.storage_file, args.initial_wish_id)
+    fake_initial_wish_id = 0
+    file_storage = WishStorageFileAdapter(args.storage_file, fake_initial_wish_id)
 
     dbname = args.database_name
     user = args.database_username
