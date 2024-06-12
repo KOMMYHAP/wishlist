@@ -42,13 +42,22 @@ def remove_outdated_backups(root: str, limit: int) -> bool:
                 continue
             backups_list.append(entry.path)
 
-    backups_list.sort()
+    backups_list.sort(reverse=True)
 
-    outdated_backups = backups_list[limit:]
+    outdated_backups = backups_list[limit - 1:]
     for path in outdated_backups:
-        os.remove(path)
+        try:
+            shutil.rmtree(path, ignore_errors=False)
+        except OSError as e:
+            print(e)
+            return False
 
     return True
+
+
+def make_datetime_now_str() -> str:
+    now = datetime.datetime.now(datetime.UTC)
+    return now.strftime('%Y_%m_%d_%H_%M_%S')
 
 
 def move_new_backup(backup_directory: str, root: str) -> bool:
@@ -57,39 +66,45 @@ def move_new_backup(backup_directory: str, root: str) -> bool:
         print(f'Specified path of backup directory is not a directory: "{backup_directory}"!')
         return False
 
-    backup_filename = f'backup_{now.strftime('%Y_%m_%d_%H:%M:%S')}'
+    backup_filename = f'backup_{make_datetime_now_str()}'
     new_directory = os.path.join(root, backup_filename)
-    shutil.move(backup_directory, new_directory)
 
-    return True
+    try:
+        shutil.move(backup_directory, new_directory)
+        return True
+    except OSError as e:
+        print(e)
+        return False
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--database', 'Specifies the name of the database to be dumped', required=True)
-    parser.add_argument('--username', 'User name to connect as.', required=True)
-    parser.add_argument('--output', 'The root directory for backup history.', required=True)
-    parser.add_argument('--history', 'Specifies the count of backups to be stored.', required=True, type=int)
+    parser.add_argument('--database', help='Specifies the name of the database to be dumped', required=True)
+    parser.add_argument('--username', help='User name to connect as.', required=True)
+    parser.add_argument('--output', help='The root directory for backup history.', required=True)
+    parser.add_argument('--history-length', help='Specifies the count of backups to be stored.', required=True,
+                        type=int)
     args = parser.parse_args()
 
-    if args.history < 1:
-        print(f'History must be >= 1, but got {args.history}!')
+    if args.history_length < 1:
+        print(f'History must be >= 1, but got {args.history_length}!')
+        exit(-1)
 
-    temp_output = tempfile.mkdtemp('wishlist_temp_backup_')
+    temp_output = tempfile.mkdtemp(prefix='wishlist_temp_backup_', suffix=f'_{make_datetime_now_str()}')
     print(f'Temp backup directory is "{temp_output}"')
 
     backup_completed = make_backup(args.database, args.username, temp_output)
     if not backup_completed:
         print('Failed to complete backup!')
-        exit(-2)
+        exit(-1)
 
-    if not remove_outdated_backups(args.output, args.history):
+    if not remove_outdated_backups(args.output, args.history_length):
         print('Failed to remove outdated backups!')
-        exit(-3)
+        exit(-1)
 
     if not move_new_backup(temp_output, args.output):
         print('Failed to move backup from temp to new directory!')
-        exit(-4)
+        exit(-1)
 
     return 0
 
