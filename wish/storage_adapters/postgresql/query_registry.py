@@ -22,8 +22,8 @@ class SqlQuery(StrEnum):
 
 
 class QueryRegistry:
-    def __init__(self, queries_registry_directory: str):
-        self.queries_registry_directory = queries_registry_directory
+    def __init__(self):
+        self.queries_registry_directory = os.path.join(os.path.dirname(__file__), 'queries')
         self._queries: dict[SqlQuery, str] = {}
         self._load_all_queries()
 

@@ -29,7 +29,7 @@ async def postgresql_tests_entry_point() -> None:
     con = f"dbname={dbname} user={user} password={password}"
     logger = Logger.root
 
-    adapter = PostgresStorageAdapter("wishlist-tests", con, queries_directory, logger)
+    adapter = PostgresStorageAdapter("wishlist-tests", con, logger)
 
     now = datetime.datetime.now(datetime.UTC)
     user = User(1, 42, 'username', 'first_name', 'last_name', 10, now)

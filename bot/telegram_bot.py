@@ -31,9 +31,8 @@ def _make_storage_adapter(args, logger) -> WishStorageBaseAdapter:
     dbname = args.database_name
     user = args.database_username
     password = args.database_password
-    queries_directory = args.database_queries_directory
     con = f"dbname={dbname} user={user} password={password}"
-    return PostgresStorageAdapter("wishlist-bot", con, queries_directory, logger)
+    return PostgresStorageAdapter("wishlist-bot", con, logger)
 
 
 async def entry_point() -> None:
@@ -50,7 +49,6 @@ async def entry_point() -> None:
     parser.add_argument('--database-name')
     parser.add_argument('--database-username')
     parser.add_argument('--database-password')
-    parser.add_argument('--database-queries-directory')
     args = parser.parse_args()
 
     wishlist_config = WishlistConfig(

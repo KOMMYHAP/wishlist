@@ -17,12 +17,12 @@ from wish.types.wish_record import WishRecord
 
 
 class PostgresStorageAdapter(WishStorageBaseAdapter):
-    def __init__(self, connection_name: str, db_connection: str, queries_registry_directory: str, logger: Logger):
+    def __init__(self, connection_name: str, db_connection: str, logger: Logger):
         connections_count = 2
         self._pool = AsyncConnectionPool(db_connection,
                                          min_size=connections_count, max_size=connections_count,
                                          name=connection_name)
-        self._query_registry = QueryRegistry(queries_registry_directory)
+        self._query_registry = QueryRegistry()
         self._logger = logger.getChild("postgresql-storage")
 
     @staticmethod

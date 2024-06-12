@@ -14,8 +14,6 @@ async def entry_point() -> None:
 
     parser.add_argument('--database-name')
     parser.add_argument('--database-username')
-    parser.add_argument('--database-password')
-    parser.add_argument('--database-queries-directory')
     args = parser.parse_args()
 
     root_logger = logging.getLogger()
@@ -25,10 +23,8 @@ async def entry_point() -> None:
 
     dbname = args.database_name
     user = args.database_username
-    password = args.database_password
-    queries_directory = args.database_queries_directory
-    con = f"dbname={dbname} user={user} password={password}"
-    database_storage = PostgresStorageAdapter("wishlist-bot", con, queries_directory, root_logger)
+    con = f"dbname={dbname} user={user}"
+    database_storage = PostgresStorageAdapter("wishlist-bot", con, root_logger)
 
     await perform_migration(root_logger, file_storage.memory_storage, database_storage)
 
