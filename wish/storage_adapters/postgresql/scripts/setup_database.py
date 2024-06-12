@@ -42,9 +42,9 @@ def main() -> int:
         return -1
     if not run_sql(args.database, args.username, 'index_friends.sql', {}):
         return -1
-    if not run_sql(args.database, args.username, 'create_role_bot.sql', {'password': args.password_bot}):
+    if not run_sql(args.database, args.username, 'create_role_bot.sql', {'password': f'\'{args.password_bot}\''}):
         return -1
-    if not run_sql(args.database, args.username, 'create_role_backup.sql', {"password": args.password_backup}):
+    if not run_sql(args.database, args.username, 'create_role_backup.sql', {'password': f'\'{args.password_backup}\''}):
         return -1
 
     return 0
