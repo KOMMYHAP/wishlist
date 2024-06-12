@@ -61,7 +61,7 @@ def make_datetime_now_str() -> str:
 
 
 def move_new_backup(backup_directory: str, root: str) -> bool:
-    now = datetime.datetime.now(datetime.UTC)
+    datetime.datetime.now(datetime.UTC)
     if not os.path.isdir(backup_directory):
         print(f'Specified path of backup directory is not a directory: "{backup_directory}"!')
         return False
