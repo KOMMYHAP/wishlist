@@ -29,7 +29,7 @@ def make_backup(database_name: str, username: str, output_directory: str) -> boo
 
 
 def remove_outdated_backups(root: str, limit: int) -> bool:
-    if limit <= 1:
+    if limit < 1:
         print(f'Limit count of backups must be >= 1, but got {limit}')
         return False
 
