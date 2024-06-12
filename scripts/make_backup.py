@@ -88,7 +88,7 @@ def main() -> int:
 
     if args.history_length < 1:
         print(f'History must be >= 1, but got {args.history_length}!')
-        exit(-1)
+        return -1
 
     temp_output = tempfile.mkdtemp(prefix='wishlist_temp_backup_', suffix=f'_{make_datetime_now_str()}')
     print(f'Temp backup directory is "{temp_output}"')
@@ -96,15 +96,15 @@ def main() -> int:
     backup_completed = make_backup(args.database, args.username, temp_output)
     if not backup_completed:
         print('Failed to complete backup!')
-        exit(-1)
+        return -1
 
     if not remove_outdated_backups(args.output, args.history_length):
         print('Failed to remove outdated backups!')
-        exit(-1)
+        return -1
 
     if not move_new_backup(temp_output, args.output):
         print('Failed to move backup from temp to new directory!')
-        exit(-1)
+        return -1
 
     return 0
 
