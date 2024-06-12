@@ -1,5 +1,5 @@
 CREATE TABLE wishes (
-	wish_id serial,
+	wish_id integer GENERATED ALWAYS AS IDENTITY,
 	owner_id bigint REFERENCES users(user_id),
 	title text,
 	hint text,
