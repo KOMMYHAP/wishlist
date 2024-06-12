@@ -1,6 +1,6 @@
 CREATE TABLE users (
 	user_id bigint PRIMARY KEY,
-	user_name text UNIQUE,
+	user_name text,
 	first_name text,
 	last_name text,
 	chat_id bigint,
