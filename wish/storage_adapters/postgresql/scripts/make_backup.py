@@ -2,14 +2,12 @@ import argparse
 import datetime
 import os
 import shutil
-import subprocess
 import tempfile
 
-from backup_utils import collect_backups_list
+from backup_utils import collect_backups_list, run_external_tool
 
 
 def make_backup(database_name: str, username: str, output_directory: str) -> bool:
-
     args = ['pg_dump',
             f'--dbname={database_name}',
             f'--jobs={os.cpu_count()}',
@@ -18,13 +16,9 @@ def make_backup(database_name: str, username: str, output_directory: str) -> boo
             '--format=directory',
             '--no-password']
 
-    try:
-        subprocess.run(args, stdout=subprocess.STDOUT, stderr=subprocess.PIPE, check=True, shell=True)
-    except subprocess.CalledProcessError as e:
-        print(e)
-        if e.stderr:
-            print(e.stderr)
-
+    if not run_external_tool(args):
+        print('Failed to make dump!')
+        return False
     return True
 
 
