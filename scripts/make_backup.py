@@ -5,25 +5,25 @@ import shutil
 import subprocess
 import tempfile
 
+from backup_utils import collect_backups_list
+
 
 def make_backup(database_name: str, username: str, output_directory: str) -> bool:
-    port = 5432
-    jobs = os.cpu_count()
 
     args = ['pg_dump',
             f'--dbname={database_name}',
-            f'--port={port}',
-            f'--jobs={jobs}',
+            f'--jobs={os.cpu_count()}',
             f'--file={os.path.abspath(output_directory)}',
             f'--username={username}',
             '--format=directory',
             '--no-password']
 
     try:
-        subprocess.run(args, capture_output=True, check=True, shell=True)
+        subprocess.run(args, stdout=subprocess.STDOUT, stderr=subprocess.PIPE, check=True, shell=True)
     except subprocess.CalledProcessError as e:
         print(e)
-        return False
+        if e.stderr:
+            print(e.stderr)
 
     return True
 
@@ -33,15 +33,7 @@ def remove_outdated_backups(root: str, limit: int) -> bool:
         print(f'Limit count of backups must be >= 1, but got {limit}')
         return False
 
-    backups_list = []
-
-    with os.scandir(root) as it:
-        for entry in it:
-            if entry.is_file():
-                print(f'Suspicious file "{entry.name}" skipped.')
-                continue
-            backups_list.append(entry.path)
-
+    backups_list = collect_backups_list(root)
     backups_list.sort(reverse=True)
 
     outdated_backups = backups_list[limit - 1:]
