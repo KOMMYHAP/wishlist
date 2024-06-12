@@ -131,10 +131,7 @@ class PostgresStorageAdapter(WishStorageBaseAdapter):
         return updated
 
     async def delete_user(self, user_id: int) -> bool:
-        deleted, _ = await self._process_query(SqlQuery.DELETE_USER, {
-            "user_id": user_id,
-        })
-        return deleted
+        return await super().delete_user(user_id)
 
     async def get_wishlist(self, user_id: int) -> list[WishRecord]:
         found, wish_items_list = await self._process_query(SqlQuery.GET_WISHLIST, {
