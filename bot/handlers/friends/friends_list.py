@@ -56,21 +56,20 @@ async def make_friends_list_args(user_id: int, wish_manager: WishManager, curren
 class FriendDataUpdateResult(Enum):
     ADDED = 0,
     FOUND = 1,
-    UNKNOWN_USER = 2
+    UNKNOWN_USER = 2,
+    SAME_USER = 3
 
 
 async def update_friend_record_usage(user_id: int, friend_user_id: int,
                                      wish_manager: WishManager) -> FriendDataUpdateResult:
+    if user_id == friend_user_id:
+        return FriendDataUpdateResult.SAME_USER
+
     user = await wish_manager.find_user_by_id(friend_user_id)
     if user is None:
         return FriendDataUpdateResult.UNKNOWN_USER
 
-    friends_list = await wish_manager.get_friend_list(user_id)
-    found_friend_record = None
-    for friend_record in friends_list:
-        if friend_record.user.id == friend_user_id:
-            found_friend_record = friend_record
-            break
+    found_friend_record = await wish_manager.find_user_friend_by_id(user_id, friend_user_id)
 
     now = datetime.datetime.now(datetime.UTC)
     zero = datetime.datetime.fromtimestamp(0, datetime.UTC)
@@ -79,11 +78,10 @@ async def update_friend_record_usage(user_id: int, friend_user_id: int,
         found_friend_record.request_counter += 1
         found_friend_record.last_access_time = now
         found_friend_record.last_wishlist_edit_time = user.wishlist_update_time
+        await wish_manager.update_friend(user_id, found_friend_record)
     else:
         new_friend_record = FriendRecord(user, 1, now, zero)
-        friends_list.append(new_friend_record)
-
-    await wish_manager.update_friend_list(user_id, friends_list)
+        await wish_manager.create_friend(user_id, new_friend_record)
 
     return FriendDataUpdateResult.ADDED
 

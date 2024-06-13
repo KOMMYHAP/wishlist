@@ -159,21 +159,55 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
             friends.append(friend_record)
         return friends
 
-    async def update_friend_list(self, user_id: int, friends: list[FriendRecord]) -> bool:
-        friend_records = self.friends.get(user_id)
-        if friend_records is not None:
-            self.friends.pop(user_id)
-
-        friend_records = []
-        self.friends[user_id] = friend_records
-
-        for friend in friends:
-            friend_records.append(self._as_friend_data(friend))
+    async def remove_friend(self, user_id: int, friend_id: int) -> bool:
+        friend_idx = self._find_user_friend_idx_by_id(user_id, friend_id)
+        if friend_idx is None:
+            return False
+        self.friends[user_id].pop(friend_idx)
         return True
+
+    async def update_friend(self, user_id: int, friend_record: FriendRecord) -> bool:
+        friend_idx = self._find_user_friend_idx_by_id(user_id, friend_record.user.id)
+        if friend_idx is None:
+            return False
+        self.friends[user_id][friend_idx] = self._as_friend_data(friend_record)
+        return True
+
+    async def create_friend(self, user_id: int, friend_record: FriendRecord) -> bool:
+        friend_idx = self._find_user_friend_idx_by_id(user_id, friend_record.user.id)
+        if friend_idx is not None:
+            return False
+        self.friends[user_id].append(self._as_friend_data(friend_record))
+        return True
+
+    async def find_user_friend_by_id(self, user_id: int, friend_id: int) -> FriendRecord | None:
+        friend_idx = self._find_user_friend_idx_by_id(user_id, friend_id)
+        if friend_idx is None:
+            return None
+        friend_data = self.friends[user_id][friend_idx]
+        return await self._get_friend_record(friend_data)
+
+    def _find_user_friend_idx_by_id(self, user_id: int, friend_id: int) -> int | None:
+        friend_list = self.friends.get(user_id)
+        if friend_list is None:
+            return None
+        for friend_data_idx in range(len(friend_list)):
+            friend_data = friend_list[friend_data_idx]
+            friend_data_id = self._get_friend_id(friend_data)
+            if friend_data_id == friend_id:
+                return friend_data_idx
+        return None
+
+    def _get_friend_id(self, friend_data: dict) -> int:
+        try:
+            return friend_data['id']
+        except KeyError as e:
+            self._log.exception('friend data %s', json.dumps(friend_data, indent='  '), exc_info=e)
+            return 0
 
     async def _get_friend_record(self, friend_data: dict) -> FriendRecord | None:
         try:
-            friend_user_id = friend_data['id']
+            friend_user_id = self._get_friend_id(friend_data)
             raw_access_time = friend_data['access_time']
             raw_wishlist_edit_time = friend_data['last_wishlist_edit_time']
             friend_user = await self.find_user_by_id(friend_user_id)

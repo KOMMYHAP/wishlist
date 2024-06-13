@@ -1,0 +1,1 @@
+SELECT * FROM wishes WHERE owner_id = %(owner_id)s;

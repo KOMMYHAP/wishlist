@@ -1,0 +1,1 @@
+SELECT * FROM friends WHERE user_id = %(user_id)s;

@@ -1,0 +1,2 @@
+INSERT INTO users (user_id, user_name, first_name, last_name, chat_id, wishlist_update_time, user_version)
+VALUES (%(user_id)s, %(user_name)s, %(first_name)s, %(last_name)s, %(chat_id)s, %(wishlist_update_time)s, %(user_version)s);

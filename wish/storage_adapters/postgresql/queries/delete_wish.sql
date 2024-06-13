@@ -1,0 +1,1 @@
+DELETE FROM wishes WHERE wish_id = %(wish_id)s;
