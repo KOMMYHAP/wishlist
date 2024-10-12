@@ -5,7 +5,7 @@ from telebot.callback_data import CallbackData
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bot.handlers.listable_markup import _make_listable_markup, ListableMarkupParameters, PageNavigation
-from bot.types.MessageArgs import MessageArgs
+from bot.types.message_args import MessageArgs
 from bot.utilities.suite_symbols import SuiteSymbols
 from bot.utilities.user_fullname import get_user_fullname
 from wish.types.user import User
@@ -61,13 +61,13 @@ def _make_wishlist_title(config: WishlistRequestConfig, wishlist: list[WishRecor
 def _make_wishlist_markup(config: WishlistRequestConfig, wishlist: list[WishRecord],
                           wishes_per_page: int, need_create_button: bool) -> InlineKeyboardMarkup:
     def _wish_navigation_button_factory(navigation: PageNavigation, page_idx: int) -> InlineKeyboardButton:
-        navigation_text = SuiteSymbols.ARROW_LEFT.value if navigation == PageNavigation.BACK else SuiteSymbols.ARROW_RIGHT.value
+        navigation_text = SuiteSymbols.ARROW_LEFT.value() if navigation == PageNavigation.BACK else SuiteSymbols.ARROW_RIGHT.value()
         return InlineKeyboardButton(text=navigation_text, callback_data=config.page_navigation_factory(page_idx))
 
     def _wish_button_factory(wish_idx: int, wish: WishRecord) -> InlineKeyboardButton | None:
         if wish is None:
             if need_create_button:
-                return InlineKeyboardButton(text=SuiteSymbols.PLUS.value, callback_data=config.wish_factory(None))
+                return InlineKeyboardButton(text=SuiteSymbols.PLUS.value(), callback_data=config.wish_factory(None))
             return None
 
         return InlineKeyboardButton(

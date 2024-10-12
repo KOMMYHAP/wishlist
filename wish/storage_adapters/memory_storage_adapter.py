@@ -23,7 +23,7 @@ class WishStorageMemoryAdapter(WishStorageBaseAdapter):
 
     async def find_user_by_name(self, username: str) -> User | None:
         found_user_data: dict | None = None
-        for id, user_data in self.users.items():
+        for _, user_data in self.users.items():
             if user_data.get('user_name') != username:
                 continue
             found_user_data = user_data

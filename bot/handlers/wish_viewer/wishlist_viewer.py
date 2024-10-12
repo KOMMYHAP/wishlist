@@ -8,7 +8,7 @@ from bot.filters.wish_viewer_query_filter import wish_viewer_callback_data, wish
 from bot.filters.wishlist_viewer_filter import wishlist_viewer_callback_data
 from bot.handlers.command_registry import WishlistCommands
 from bot.handlers.wishlist_request import make_wishlist_request, WishlistRequestConfig
-from bot.types.MessageArgs import MessageArgs
+from bot.types.message_args import MessageArgs
 from wish.wish_manager import WishManager
 
 

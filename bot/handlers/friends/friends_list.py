@@ -7,7 +7,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 
 from bot.filters.friend_filter import friend_callback_data, friends_list_callback_data
 from bot.handlers.listable_markup import PageNavigation, _make_listable_markup, ListableMarkupParameters
-from bot.types.MessageArgs import MessageArgs
+from bot.types.message_args import MessageArgs
 from bot.utilities.suite_symbols import SuiteSymbols
 from bot.utilities.user_fullname import get_user_fullname
 from wish.types.friend_record import FriendRecord
@@ -22,7 +22,7 @@ def make_friends_list_markup(friends_list: list[FriendRecord],
     friends_list_by_access_time = sorted(friends_list, key=lambda r: r.last_access_time, reverse=True)
 
     def _friend_navigation_button_factory(navigation: PageNavigation, page_idx: int) -> InlineKeyboardButton:
-        navigation_text = SuiteSymbols.ARROW_LEFT.value if navigation == PageNavigation.BACK else SuiteSymbols.ARROW_RIGHT.value
+        navigation_text = SuiteSymbols.ARROW_LEFT.value() if navigation == PageNavigation.BACK else SuiteSymbols.ARROW_RIGHT.value()
         return InlineKeyboardButton(text=navigation_text,
                                     callback_data=friends_list_callback_data.new(page_id=page_idx))
 
