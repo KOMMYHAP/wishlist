@@ -7,7 +7,7 @@ from telebot.types import Message, CallbackQuery
 from bot.filters.wish_editor_query_filter import wish_editor_callback_data, wish_editor_new_marker
 from bot.filters.wishlist_editor_filter import wishlist_editor_callback_data
 from bot.handlers.wishlist_request import make_wishlist_request, WishlistRequestConfig
-from bot.types.message_args import MessageArgs
+from bot.bot_types.message_args import MessageArgs
 from wish.wish_manager import WishManager
 
 

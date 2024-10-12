@@ -5,7 +5,7 @@ from telebot.callback_data import CallbackData
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bot.handlers.listable_markup import _make_listable_markup, ListableMarkupParameters, PageNavigation
-from bot.types.message_args import MessageArgs
+from bot.bot_types.message_args import MessageArgs
 from bot.utilities.suite_symbols import SuiteSymbols
 from bot.utilities.user_fullname import get_user_fullname
 from wish.types.user import User

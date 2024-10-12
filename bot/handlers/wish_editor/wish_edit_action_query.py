@@ -9,7 +9,7 @@ from bot.filters.wish_edit_action_filter import wish_edit_action_callback_data
 from bot.handlers.bot_idle_state import bot_idle_state
 from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
 from bot.handlers.wish_editor.wishlist_editor import edit_my_wishlist_editor
-from bot.types.wish_edit_states import WishEditStates
+from bot.bot_types.wish_edit_states import WishEditStates
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from wish.wish_manager import WishManager
 
