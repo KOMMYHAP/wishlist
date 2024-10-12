@@ -24,7 +24,7 @@ class StateStorageAdapter(StateBaseAdapter):
                 self._logger.debug('Key was found but its value is None: user id = %d, key = %s', user_id, str(key))
             return user_value
 
-        self._logger.warning('Cannot find data of user %d', user_id)
+        self._logger.debug('Cannot find data of user %d', user_id)
         return None
 
     async def _set_user_data(self, user_id: int, key: str | int, value: UserValueType | None) -> bool:
