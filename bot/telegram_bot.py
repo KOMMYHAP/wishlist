@@ -20,7 +20,7 @@ from wish.wishlist_config import WishlistConfig
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.DEBUG
+    level=logging.INFO
 )
 
 
