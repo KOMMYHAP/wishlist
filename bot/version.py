@@ -1,6 +1,6 @@
 from bot.handlers.command_registry import WishlistCommands
 
-current_bot_version = 3
+current_bot_version = 4
 
 _update_message_footer = "Спасибо, что помогаете с тестированием бота!"
 
@@ -29,6 +29,10 @@ _update_message_3 = f"""Обновление 0.9.1
 2. Добавлен функционал пролистывания списка друзей
 """
 
+_update_message_4 = f"""Обновление 0.9.2
+1. Данные всех пользователей успешно мигрировали в PostgreSQL
+"""
+
 _todo_message = """TODO:
 1. Антивишлист. В качестве временного решения можно добавить желание и попросить кого-нибудь забронить его.
 2. Категории. Добавить возможность сгруппировать желания по категориям, например, "бытовая техника" или "книги". Нужно больше примеров, в идеале рефы на сторонние сервисы по вишлистам.
@@ -38,7 +42,8 @@ _todo_message = """TODO:
 _update_message_list = [
     _update_message_1,
     _update_message_2,
-    _update_message_3
+    _update_message_3,
+    _update_message_4
 ]
 
 
