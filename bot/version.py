@@ -31,6 +31,7 @@ _update_message_3 = f"""Обновление 0.9.1
 
 _update_message_4 = f"""Обновление 0.9.2
 1. Данные всех пользователей успешно мигрировали в PostgreSQL
+2. Добавлена команда /about
 """
 
 _todo_message = """TODO:
