@@ -33,12 +33,19 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--database', help='Specifies the name of the database to be dumped', required=True)
     parser.add_argument('--username', help='User name to connect as.', required=True)
-    parser.add_argument('--backups-root', help='The root directory of backup history.', required=True)
+    parser.add_argument('--backups-root', help='The root directory of backup history.', required=False)
+    parser.add_argument('--backup-directory', help='The directory of backup.', required=False)
     args = parser.parse_args()
 
-    backup_directory = found_best_backup(args.backups_root)
-    if backup_directory is None:
-        print('Failed to found best backup!')
+    if args.backups_root:
+        backup_directory = found_best_backup(args.backups_root)
+        if backup_directory is None:
+            print('Failed to found best backup!')
+            return -1
+    elif args.backup_directory:
+        backup_directory = args.backup_directory
+    else:
+        print('You should specify either "--backups-root" or "--backup-directory"!')
         return -1
 
     print(f'Trying to restore database from {backup_directory}...')

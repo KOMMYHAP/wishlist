@@ -7,7 +7,7 @@ from bot.filters.wish_editor_query_filter import wish_editor_callback_data
 from bot.filters.wish_viewer_query_filter import wish_viewer_new_marker
 from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
 from bot.keyboards.wish_edit_keyboard import make_wish_edit_keyboard
-from bot.types.MessageArgs import MessageArgs
+from bot.bot_types.message_args import MessageArgs
 from wish.state_adapters.state_base_adapter import StateBaseAdapter
 from wish.wish_manager import WishManager
 

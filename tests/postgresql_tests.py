@@ -25,11 +25,12 @@ async def postgresql_tests_entry_point() -> None:
     dbname = args.database_name
     user = args.database_username
     password = args.database_password
-    queries_directory = args.database_queries_directory
+    _ = args.database_queries_directory
     con = f"dbname={dbname} user={user} password={password}"
     logger = Logger.root
 
     adapter = PostgresStorageAdapter("wishlist-tests", con, logger)
+    await adapter.open_pool()
 
     now = datetime.datetime.now(datetime.UTC)
     user = User(1, 42, 'username', 'first_name', 'last_name', 10, now)

@@ -20,18 +20,20 @@ from wish.wishlist_config import WishlistConfig
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.DEBUG
+    level=logging.INFO
 )
 
 
-def _make_storage_adapter(args, logger) -> WishStorageBaseAdapter:
+async def _make_storage_adapter(args, logger) -> WishStorageBaseAdapter:
     if args.storage_file and args.initial_wish_id:
         return WishStorageFileAdapter(args.storage_file, args.initial_wish_id)
 
     dbname = args.database_name
     user = args.database_username
     con = f"dbname={dbname} user={user}"
-    return PostgresStorageAdapter("wishlist-bot", con, logger)
+    postgres_adapter = PostgresStorageAdapter("wishlist-bot", con, logger)
+    await postgres_adapter.open_pool()
+    return postgres_adapter
 
 
 async def entry_point() -> None:
@@ -60,7 +62,7 @@ async def entry_point() -> None:
     root_logger = logging.getLogger()
     state_storage = StateMemoryStorage()
     state_adapter = StateStorageAdapter(state_storage, root_logger)
-    wish_storage = _make_storage_adapter(args, root_logger)
+    wish_storage = await _make_storage_adapter(args, root_logger)
     wish_manager = WishManager(wish_storage, root_logger, wishlist_config)
 
     bot = AsyncTeleBot(args.token, exception_handler=DebugExceptionHandler(), state_storage=state_storage)

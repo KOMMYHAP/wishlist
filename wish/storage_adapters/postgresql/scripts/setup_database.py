@@ -22,7 +22,7 @@ def run_sql(database: str | None, username: str, file: str, sql_vars: dict) -> b
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--database', help='Specifies the name of the database to be dumped', required=True)
+    parser.add_argument('--database', help='Specifies the name of the database to setup', required=True)
     parser.add_argument('--username', help='User name to connect as.', required=True)
     parser.add_argument('--password-bot', help='Password for wishlist_bot role.', required=True)
     parser.add_argument('--password-backup', help='Password for wishlist_backup role.', required=True)

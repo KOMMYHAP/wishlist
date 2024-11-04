@@ -12,7 +12,7 @@ from bot.handlers.wish_editor.wish_edit_hint import wish_edit_hint_handler
 from bot.handlers.wish_editor.wish_edit_title import wish_edit_title_handler
 from bot.handlers.wish_editor.wish_editor_query import wish_editor_query
 from bot.handlers.wish_editor.wishlist_editor_query import wishlist_editor_query
-from bot.types.wish_edit_states import WishEditStates
+from bot.bot_types.wish_edit_states import WishEditStates
 
 
 def setup_editor_handlers(bot: AsyncTeleBot):

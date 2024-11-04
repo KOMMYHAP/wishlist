@@ -7,7 +7,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 
 from bot.filters.friend_filter import friend_callback_data, friends_list_callback_data
 from bot.handlers.listable_markup import PageNavigation, _make_listable_markup, ListableMarkupParameters
-from bot.types.MessageArgs import MessageArgs
+from bot.bot_types.message_args import MessageArgs
 from bot.utilities.suite_symbols import SuiteSymbols
 from bot.utilities.user_fullname import get_user_fullname
 from wish.types.friend_record import FriendRecord

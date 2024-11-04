@@ -21,9 +21,12 @@ class PostgresStorageAdapter(WishStorageBaseAdapter):
         connections_count = 2
         self._pool = AsyncConnectionPool(db_connection,
                                          min_size=connections_count, max_size=connections_count,
-                                         name=connection_name)
+                                         name=connection_name, open=False)
         self._query_registry = QueryRegistry()
         self._logger = logger.getChild("postgresql-storage")
+
+    async def open_pool(self):
+        await self._pool.open(True)
 
     @staticmethod
     def _convert_to_user_record(user_item: UserModel) -> User:

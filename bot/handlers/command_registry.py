@@ -5,6 +5,7 @@ class WishlistCommands(Enum):
     MY_WISHLIST = 'my_wishlist'
     USER_WISHLIST = 'user_wishlist'
     GET_UPDATES = 'get_updates'
+    ABOUT = 'about'
 
 
 def get_command_description(command: WishlistCommands):
@@ -14,5 +15,7 @@ def get_command_description(command: WishlistCommands):
         return 'Список желаний другого пользователя'
     if command is WishlistCommands.GET_UPDATES:
         return 'Проверить обновления желаний у других пользователей'
+    if command is WishlistCommands.ABOUT:
+        return 'Обо мне'
 
     raise NotImplementedError()

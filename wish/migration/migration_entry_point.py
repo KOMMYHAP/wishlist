@@ -25,6 +25,7 @@ async def entry_point() -> None:
     user = args.database_username
     con = f"dbname={dbname} user={user}"
     database_storage = PostgresStorageAdapter("wishlist-bot", con, root_logger)
+    await database_storage.open_pool()
 
     await perform_migration(root_logger, file_storage.memory_storage, database_storage)
 

@@ -2,7 +2,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bot.filters.wish_edit_action_filter import wish_edit_action_callback_data
 from bot.handlers.wish_editor.wish_editor_draft import WishEditorDraft
-from bot.types.wish_edit_states import WishEditStates
+from bot.bot_types.wish_edit_states import WishEditStates
 
 
 def make_wish_edit_keyboard(wish_draft: WishEditorDraft) -> InlineKeyboardMarkup:
