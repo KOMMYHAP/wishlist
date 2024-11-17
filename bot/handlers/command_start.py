@@ -6,8 +6,9 @@ from telebot.types import Message
 
 from bot.handlers.command_registry import WishlistCommands
 from bot.handlers.wish_editor.wishlist_editor import send_my_wishlist_editor
+from bot.handlers.wish_viewer.wishlist_viewer import send_user_wishlist_viewer
 from bot.utilities.user_fullname import get_user_fullname
-from bot.version import current_bot_version
+from bot.version import get_current_version
 from wish.types.user import User
 from wish.wish_manager import WishManager
 
@@ -18,7 +19,7 @@ async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manage
 
     _username = message_sender.username or ''
     _last_name = message_sender.last_name or ''
-    user = User(current_bot_version, message_sender.id, _username, message_sender.first_name,
+    user = User(get_current_version(), message_sender.id, _username, message_sender.first_name,
                 _last_name, message.chat.id, datetime.datetime.fromtimestamp(0, datetime.UTC))
 
     new_user_created = await wish_manager.register_user(user)
@@ -26,7 +27,43 @@ async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manage
         hello_world_message = f"Привет, {get_user_fullname(user)}!\n\n{_start_message}"
         await bot.send_message(message.chat.id, hello_world_message)
 
-    await send_my_wishlist_editor(logger, message, bot, wish_manager, 0)
+    deep_link_parameter = _try_get_deep_link_parameter(message.text)
+    if deep_link_parameter is None:
+        await send_my_wishlist_editor(logger, message, bot, wish_manager, 0)
+    else:
+        await _command_start_with_deeplink(deep_link_parameter, message, bot, wish_manager, logger)
+
+
+async def _command_start_with_deeplink(deep_link_parameter: str, message: Message, bot: AsyncTeleBot,
+                                       wish_manager: WishManager,
+                                       logger: Logger) -> None:
+    target_user_id = _try_cast_to_user_id(deep_link_parameter)
+    if target_user_id is None:
+        await bot.reply_to(message, 'Некорректная ссылка! Попробуй попросить новую ссылку у твоего друга')
+        return
+
+    requested_user = await wish_manager.find_user_by_id(target_user_id)
+    if not requested_user:
+        await bot.reply_to(message,
+                           'Я не смог найти вишлист этого человека! Попробуй попросить новую ссылку у твоего друга')
+        return
+
+    await send_user_wishlist_viewer(bot, logger, message, target_user_id, wish_manager, 0)
+
+
+def _try_get_deep_link_parameter(text: str) -> None | str:
+    prefix = '/start '
+    if not text.startswith(prefix):
+        return None
+
+    return text.removeprefix(prefix)
+
+
+def _try_cast_to_user_id(parameter: str) -> None | int:
+    try:
+        return int(parameter)
+    except ValueError:
+        return None
 
 
 _start_message = f"""Если ты хочешь получить в подарок что-то действительно нужное...
@@ -39,6 +76,5 @@ _start_message = f"""Если ты хочешь получить в подаро
 Ты можешь создать свой список желаний /{WishlistCommands.MY_WISHLIST.value}, чтобы помочь другим людям выбрать и тебе качественный подарок.
 Также ты можешь следить за обновлением списка желаний своих друзей /{WishlistCommands.GET_UPDATES.value}.
 
-Большое вам спасибо, что помогаете делать меня лучше.
-Со всем пожеланиями, идеями, баг-репортами вы можете обращаться непосредственно к моему разработчику: @polyakov_white.
+Большое спасибо, что помогаешь делать меня лучше!
 """

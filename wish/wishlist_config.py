@@ -8,3 +8,4 @@ class WishlistConfig:
     allow_user_sees_owned_wishlist: bool
     initial_wish_id: int
     friends_count_on_page: int
+    bot_username: str

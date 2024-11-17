@@ -51,29 +51,29 @@ async def entry_point() -> None:
     parser.add_argument('--database-username')
     args = parser.parse_args()
 
+    state_storage = StateMemoryStorage()
+    bot = AsyncTeleBot(args.token, exception_handler=DebugExceptionHandler(), state_storage=state_storage)
+    bot_user = await bot.get_me()
+
     wishlist_config = WishlistConfig(
         args.wishes_per_page,
         args.allow_wish_owner_sees_reservation,
         args.allow_user_sees_owned_wishlist,
         args.initial_wish_id,
-        args.friends_count_on_page
+        args.friends_count_on_page,
+        bot_user.username
     )
 
     root_logger = logging.getLogger()
-    state_storage = StateMemoryStorage()
     state_adapter = StateStorageAdapter(state_storage, root_logger)
     wish_storage = await _make_storage_adapter(args, root_logger)
     wish_manager = WishManager(wish_storage, root_logger, wishlist_config)
-
-    bot = AsyncTeleBot(args.token, exception_handler=DebugExceptionHandler(), state_storage=state_storage)
-
-    bot_user = await bot.get_me()
-    root_logger.info("Starts bot @%s (id: %d)", bot_user.username, bot_user.id)
 
     setup_filters(bot)
     setup_middlewares(bot, root_logger, state_adapter, wish_manager)
     setup_handlers(bot)
 
+    root_logger.info("Starts bot @%s (id: %d)", bot_user.username, bot_user.id)
     await bot.polling(non_stop=True)
 
 

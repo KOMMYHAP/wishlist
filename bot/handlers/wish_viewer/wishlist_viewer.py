@@ -4,11 +4,12 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.callback_data import CallbackData
 from telebot.types import Message, CallbackQuery
 
+from bot.bot_types.message_args import MessageArgs
 from bot.filters.wish_viewer_query_filter import wish_viewer_callback_data, wish_viewer_new_marker
 from bot.filters.wishlist_viewer_filter import wishlist_viewer_callback_data
 from bot.handlers.command_registry import WishlistCommands
+from bot.handlers.wish_editor.wishlist_editor import send_my_wishlist_editor
 from bot.handlers.wishlist_request import make_wishlist_request, WishlistRequestConfig
-from bot.bot_types.message_args import MessageArgs
 from wish.wish_manager import WishManager
 
 
@@ -16,8 +17,7 @@ async def send_user_wishlist_viewer(bot: AsyncTeleBot, logger: Logger, message: 
                                     wish_manager: WishManager,
                                     page_idx: int) -> None:
     if target_user_id == message.from_user.id and not wish_manager.config.allow_user_sees_owned_wishlist:
-        await bot.send_message(message.chat.id,
-                               f"Для просмотра личного списка желаний попробуй /{WishlistCommands.MY_WISHLIST.value}")
+        await send_my_wishlist_editor(logger, message, bot, wish_manager, page_idx)
         return
 
     request = await _make_viewer_config(logger, wish_manager, message.from_user.id, target_user_id, page_idx)
