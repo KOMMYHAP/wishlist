@@ -18,7 +18,7 @@ async def command_about_handler(message: Message, bot: AsyncTeleBot, logger: Log
         logger.error('User "%d" was not registered!', user_id)
         return
 
-    await bot.send_message(message.chat.id, _generate_about_message(user, wish_manager))
+    await bot.send_message(message.chat.id, _generate_about_message(user, wish_manager), disable_web_page_preview=True)
 
 
 def _generate_share_link(user: User, wish_manager: WishManager) -> str:
