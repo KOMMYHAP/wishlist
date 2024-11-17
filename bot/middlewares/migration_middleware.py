@@ -8,7 +8,7 @@ from telebot.types import Message, CallbackQuery, BotCommand
 from telebot.types import User as TelegramUser
 
 from bot.handlers.command_registry import WishlistCommands, get_command_description
-from bot.version import get_update_message, current_bot_version
+from bot.version import get_update_message, get_current_version
 from wish.types.user import User as WishUser
 from wish.wish_manager import WishManager
 
@@ -51,14 +51,14 @@ class MigrationMiddleware(BaseMiddleware):
         need_update = False
         initial_version = wishlist_user.version
 
-        need_update |= initial_version < current_bot_version
+        need_update |= initial_version < get_current_version()
         need_update |= self._migrate_to_v1(chat_id, user, wishlist_user)
         need_update |= self._migrate_to_v2(wishlist_user)
 
         if not need_update:
             return True
 
-        wishlist_user.version = current_bot_version
+        wishlist_user.version = get_current_version()
         updated = await self._wish_manager.update_user(wishlist_user)
         if not updated:
             self._logger.error('Failed to migrate user %s (id %d) from version %s!',

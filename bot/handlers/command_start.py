@@ -8,7 +8,7 @@ from bot.handlers.command_registry import WishlistCommands
 from bot.handlers.wish_editor.wishlist_editor import send_my_wishlist_editor
 from bot.handlers.wish_viewer.wishlist_viewer import send_user_wishlist_viewer
 from bot.utilities.user_fullname import get_user_fullname
-from bot.version import current_bot_version
+from bot.version import get_current_version
 from wish.types.user import User
 from wish.wish_manager import WishManager
 
@@ -19,7 +19,7 @@ async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manage
 
     _username = message_sender.username or ''
     _last_name = message_sender.last_name or ''
-    user = User(current_bot_version, message_sender.id, _username, message_sender.first_name,
+    user = User(get_current_version(), message_sender.id, _username, message_sender.first_name,
                 _last_name, message.chat.id, datetime.datetime.fromtimestamp(0, datetime.UTC))
 
     new_user_created = await wish_manager.register_user(user)
