@@ -3,6 +3,9 @@ from logging import Logger
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
+from wish.types.user import User
+from wish.wish_manager import WishManager
+
 
 async def command_about_handler(message: Message, bot: AsyncTeleBot, logger: Logger) -> None:
     logger = logger.getChild('about_command')
@@ -13,6 +16,10 @@ async def command_about_handler(message: Message, bot: AsyncTeleBot, logger: Log
     logger.info('User "%s" (id: %s) wants to know more about me!', username, user_id)
 
     await bot.send_message(message.chat.id, _about_message)
+
+
+def _generate_share_link(user: User, wish_manager: WishManager) -> str:
+    return f'https://t.me/{wish_manager.config.bot_username}?start={user.id}'
 
 
 _about_message = f"""Данный бот изначально являлся домашним проектом для автора и его узкого круга друзей, однако перерос в нечто большее.
