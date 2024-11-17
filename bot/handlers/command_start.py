@@ -27,15 +27,17 @@ async def command_start_handler(message: Message, bot: AsyncTeleBot, wish_manage
         hello_world_message = f"Привет, {get_user_fullname(user)}!\n\n{_start_message}"
         await bot.send_message(message.chat.id, hello_world_message)
 
-    if len(message.text) > 0:
-        await _command_start_with_deeplink(message, bot, wish_manager, logger)
-    else:
+    deep_link_parameter = _try_get_deep_link_parameter(message.text)
+    if deep_link_parameter is None:
         await send_my_wishlist_editor(logger, message, bot, wish_manager, 0)
+    else:
+        await _command_start_with_deeplink(deep_link_parameter, message, bot, wish_manager, logger)
 
 
-async def _command_start_with_deeplink(message: Message, bot: AsyncTeleBot, wish_manager: WishManager,
+async def _command_start_with_deeplink(deep_link_parameter: str, message: Message, bot: AsyncTeleBot,
+                                       wish_manager: WishManager,
                                        logger: Logger) -> None:
-    target_user_id = _try_get_deep_linked_user_id(message.text)
+    target_user_id = _try_cast_to_user_id(deep_link_parameter)
     if target_user_id is None:
         await bot.reply_to(message, 'Некорректная ссылка! Попробуй попросить новую ссылку у твоего друга')
         return
@@ -49,12 +51,15 @@ async def _command_start_with_deeplink(message: Message, bot: AsyncTeleBot, wish
     await send_user_wishlist_viewer(bot, logger, message, target_user_id, wish_manager, 0)
 
 
-def _try_get_deep_linked_user_id(text: str) -> None | int:
+def _try_get_deep_link_parameter(text: str) -> None | str:
     prefix = '/start '
     if not text.startswith(prefix):
         return None
 
-    parameter = text.removeprefix(prefix)
+    return text.removeprefix(prefix)
+
+
+def _try_cast_to_user_id(parameter: str) -> None | int:
     try:
         return int(parameter)
     except ValueError:
