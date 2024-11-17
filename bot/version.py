@@ -31,8 +31,7 @@ def get_update_message(user_version: int) -> str | None:
             "\n" + _update_message_footer)
 
 
-_current_bot_version = 5
-_current_bot_version_str = '0.9.5'
+_current_bot_version = 6
 
 _update_message_1 = \
     """1. В вишлист добавлено отображение номера текущей страницы и общее количество страниц
@@ -64,12 +63,16 @@ _update_message_4 = \
 2. Добавлена команда /{WishlistCommands.ABOUT.value}
 """
 
-_update_message_footer = "Спасибо, что пользуешься этим ботом!"
+_update_message_6 = f""" Добавлена возможность поделиться своим вишлистом (см. подробнее в /{WishlistCommands.ABOUT.value})"""
+
+_update_message_minor_changes = 'Исправлены некоторые ошибки, улучшено взаимодействие с пользователем'
+_update_message_footer = 'Спасибо, что пользуешься этим ботом!'
 
 _update_list = [
     VersionUpdateInfo(1, '0.8', _update_message_1),
     VersionUpdateInfo(2, '0.9', _update_message_2),
     VersionUpdateInfo(3, '0.9.1', _update_message_3),
     VersionUpdateInfo(4, '0.9.2', _update_message_4),
-    VersionUpdateInfo(5, '0.9.3', ''),
+    VersionUpdateInfo(5, '0.9.3', _update_message_minor_changes),
+    VersionUpdateInfo(6, '0.9.4', _update_message_6),
 ]
